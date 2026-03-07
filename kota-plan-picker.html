@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kota | Find Your Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Editorial+New:ital@0;1&family=Sohne:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+
+  :root {
+    --kota-purple: #5C3BFF;
+    --kota-purple-light: #7B5FFF;
+    --kota-purple-dim: #EDE9FF;
+    --kota-mint: #D4F5E9;
+    --kota-coral: #FF6B5B;
+    --kota-dark: #0F0D1A;
+    --kota-mid: #1E1A30;
+    --kota-surface: #252038;
+    --kota-border: rgba(255,255,255,0.08);
+    --kota-text: #F0EEF8;
+    --kota-muted: rgba(240,238,248,0.5);
+    --kota-gold: #FFD166;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--kota-dark);
+    color: var(--kota-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Ambient background */
+  .ambient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .ambient::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -10%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(ellipse, rgba(92,59,255,0.18) 0%, transparent 70%);
+    animation: drift1 12s ease-in-out infinite alternate;
+  }
+  .ambient::after {
+    content: '';
+    position: absolute;
+    bottom: -10%;
+    right: -5%;
+    width: 50%;
+    height: 50%;
+    background: radial-gradient(ellipse, rgba(212,245,233,0.07) 0%, transparent 70%);
+    animation: drift2 15s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(4%,3%) scale(1.08); } }
+  @keyframes drift2 { from { transform: translate(0,0); } to { transform: translate(-3%,-2%); } }
+
+  /* Layout */
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3.5rem;
+    animation: fadeSlideDown 0.6s ease both;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: -0.02em;
+  }
+  .logo-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--kota-purple-light);
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(123,95,255,0.8);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 12px rgba(123,95,255,0.8); } 50% { box-shadow: 0 0 20px rgba(123,95,255,1); } }
+  .header-badge {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--kota-purple-light);
+    background: rgba(92,59,255,0.15);
+    border: 1px solid rgba(92,59,255,0.3);
+    padding: 0.35rem 0.75rem;
+    border-radius: 100px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Progress */
+  .progress-bar-wrap {
+    margin-bottom: 2.5rem;
+    animation: fadeSlideDown 0.6s 0.1s ease both;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--kota-muted);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.03em;
+  }
+  .progress-track {
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--kota-purple), var(--kota-purple-light));
+    border-radius: 100px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 8px rgba(92,59,255,0.5);
+  }
+
+  /* Screen system */
+  .screen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    animation: fadeSlideUp 0.5s ease both;
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Hero screen */
+  .hero-eyebrow {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--kota-purple-light);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+  .hero-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.2rem;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--kota-purple-light);
+  }
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--kota-muted);
+    line-height: 1.65;
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+  }
+  .hero-start-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--kota-purple);
+    color: #fff;
+    border: none;
+    padding: 0.9rem 2rem;
+    border-radius: 100px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: inherit;
+  }
+  .hero-start-btn:hover {
+    background: var(--kota-purple-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(92,59,255,0.45);
+  }
+  .hero-start-btn svg { transition: transform 0.25s; }
+  .hero-start-btn:hover svg { transform: translateX(3px); }
+  .hero-features {
+    display: flex;
+    gap: 2rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--kota-border);
+    flex-wrap: wrap;
+  }
+  .hero-feat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--kota-muted);
+  }
+  .hero-feat-dot { width: 6px; height: 6px; background: var(--kota-mint); border-radius: 50%; flex-shrink: 0; }
+
+  /* Question screens */
+  .q-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--kota-purple-light);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .q-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.01em;
+  }
+  .q-sub {
+    font-size: 0.9rem;
+    color: var(--kota-muted);
+    margin-bottom: 2rem;
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  /* Option cards */
+  .options-grid {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .options-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .options-grid.cols-1 { grid-template-columns: 1fr; }
+  @media (max-width: 600px) { .options-grid.cols-2 { grid-template-columns: 1fr; } }
+
+  .option-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    border-radius: 16px;
+    border: 1.5px solid var(--kota-border);
+    background: rgba(255,255,255,0.03);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    font-family: inherit;
+    color: var(--kota-text);
+    position: relative;
+    overflow: hidden;
+  }
+  .option-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(92,59,255,0.08), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .option-card:hover { border-color: rgba(92,59,255,0.4); transform: translateY(-1px); }
+  .option-card:hover::before { opacity: 1; }
+  .option-card.selected {
+    border-color: var(--kota-purple);
+    background: rgba(92,59,255,0.1);
+    box-shadow: 0 0 0 1px rgba(92,59,255,0.3), 0 4px 20px rgba(92,59,255,0.15);
+  }
+  .option-card.selected::before { opacity: 1; }
+  .option-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .option-content {}
+  .option-title { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.2rem; }
+  .option-desc { font-size: 0.8rem; color: var(--kota-muted); font-weight: 300; line-height: 1.45; }
+  .option-check {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--kota-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .option-card.selected .option-check {
+    background: var(--kota-purple);
+    border-color: var(--kota-purple);
+  }
+  .option-check svg { opacity: 0; transition: opacity 0.15s; }
+  .option-card.selected .option-check svg { opacity: 1; }
+
+  /* Slider */
+  .slider-wrap { margin-bottom: 2rem; }
+  .slider-labels { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--kota-muted); margin-bottom: 0.5rem; }
+  .slider-value-display {
+    text-align: center;
+    font-family: 'Instrument Serif', serif;
+    font-size: 2.2rem;
+    color: var(--kota-text);
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+  .slider-value-display span { font-size: 1rem; color: var(--kota-muted); font-family: 'DM Sans', sans-serif; }
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.1);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--kota-purple);
+    cursor: pointer;
+    box-shadow: 0 0 0 4px rgba(92,59,255,0.2), 0 2px 8px rgba(0,0,0,0.3);
+    transition: box-shadow 0.2s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 6px rgba(92,59,255,0.25), 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  /* Navigation */
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 1.5rem;
+  }
+  .btn-back {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    border: 1.5px solid var(--kota-border);
+    color: var(--kota-muted);
+    padding: 0.7rem 1.2rem;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .btn-back:hover { border-color: rgba(255,255,255,0.2); color: var(--kota-text); }
+  .btn-next {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--kota-purple);
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.8rem;
+    border-radius: 100px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.25s;
+  }
+  .btn-next:hover:not(:disabled) { background: var(--kota-purple-light); box-shadow: 0 6px 20px rgba(92,59,255,0.35); transform: translateY(-1px); }
+  .btn-next:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+  /* AI thinking screen */
+  .thinking-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  .thinking-orb {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--kota-purple-light), var(--kota-purple));
+    margin: 0 auto 2rem;
+    position: relative;
+    animation: orbPulse 2s ease-in-out infinite;
+  }
+  .thinking-orb::before, .thinking-orb::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(92,59,255,0.3);
+    animation: orbRing 2s ease-in-out infinite;
+  }
+  .thinking-orb::after { inset: -18px; animation-delay: 0.4s; border-color: rgba(92,59,255,0.15); }
+  @keyframes orbPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  @keyframes orbRing { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.6; } }
+  .thinking-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.8rem;
+    margin-bottom: 0.75rem;
+    font-style: italic;
+  }
+  .thinking-steps {
+    list-style: none;
+    margin: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+    max-width: 360px;
+    width: 100%;
+  }
+  .thinking-step {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--kota-muted);
+    opacity: 0;
+    transition: all 0.4s;
+  }
+  .thinking-step.visible { opacity: 1; color: var(--kota-text); }
+  .thinking-step.done { color: var(--kota-mint); }
+  .step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .thinking-step.visible .step-dot { background: var(--kota-purple-light); animation: pulse 1s infinite; }
+  .thinking-step.done .step-dot { background: var(--kota-mint); animation: none; }
+
+  /* Results */
+  .results-hero {
+    margin-bottom: 2rem;
+  }
+  .results-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--kota-gold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .results-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.9rem, 3.5vw, 2.8rem);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.5rem;
+  }
+  .results-sub {
+    font-size: 0.9rem;
+    color: var(--kota-muted);
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  /* AI Summary card */
+  .ai-summary {
+    background: linear-gradient(135deg, rgba(92,59,255,0.12), rgba(92,59,255,0.04));
+    border: 1px solid rgba(92,59,255,0.25);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .ai-summary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(92,59,255,0.5), transparent);
+  }
+  .ai-summary-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--kota-purple-light);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .ai-summary-body {
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--kota-text);
+    font-weight: 300;
+  }
+  .ai-summary-body strong { font-weight: 500; color: var(--kota-text); }
+
+  /* Plan cards */
+  .plans-grid { display: grid; gap: 1rem; margin-bottom: 2rem; }
+  .plan-card {
+    border-radius: 20px;
+    border: 1.5px solid var(--kota-border);
+    background: rgba(255,255,255,0.02);
+    overflow: hidden;
+    transition: all 0.3s;
+    animation: fadeSlideUp 0.4s ease both;
+  }
+  .plan-card:nth-child(1) { animation-delay: 0.05s; }
+  .plan-card:nth-child(2) { animation-delay: 0.15s; }
+  .plan-card:nth-child(3) { animation-delay: 0.25s; }
+  .plan-card.recommended {
+    border-color: var(--kota-purple);
+    box-shadow: 0 0 0 1px rgba(92,59,255,0.2), 0 8px 40px rgba(92,59,255,0.15);
+  }
+  .plan-card:hover { border-color: rgba(92,59,255,0.35); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+  .plan-badge-row {
+    padding: 0.5rem 1.25rem 0;
+    display: flex;
+    justify-content: flex-end;
+    min-height: 1.6rem;
+  }
+  .plan-badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.7rem;
+    border-radius: 100px;
+    background: var(--kota-purple);
+    color: #fff;
+  }
+  .plan-body { padding: 0.5rem 1.25rem 1.5rem; }
+  .plan-match-score {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--kota-mint);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  .match-bar {
+    flex: 1;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 100px;
+    overflow: hidden;
+    max-width: 80px;
+  }
+  .match-bar-fill {
+    height: 100%;
+    background: var(--kota-mint);
+    border-radius: 100px;
+  }
+  .plan-name { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.2rem; letter-spacing: -0.01em; }
+  .plan-tagline { font-size: 0.82rem; color: var(--kota-muted); margin-bottom: 1rem; font-weight: 300; }
+  .plan-price-row { display: flex; align-items: baseline; gap: 0.3rem; margin-bottom: 1rem; }
+  .plan-price { font-family: 'Instrument Serif', serif; font-size: 1.8rem; letter-spacing: -0.02em; }
+  .plan-price-period { font-size: 0.8rem; color: var(--kota-muted); }
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 1.25rem; }
+  .plan-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--kota-muted);
+    font-weight: 300;
+    line-height: 1.4;
+  }
+  .feat-check { color: var(--kota-mint); flex-shrink: 0; margin-top: 0.1rem; font-size: 0.75rem; }
+  .feat-cross { color: rgba(255,107,91,0.6); flex-shrink: 0; margin-top: 0.1rem; font-size: 0.75rem; }
+  .plan-why {
+    font-size: 0.8rem;
+    color: var(--kota-purple-light);
+    background: rgba(92,59,255,0.1);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 1rem;
+    line-height: 1.45;
+    font-style: italic;
+  }
+  .plan-cta {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    text-align: center;
+    border: none;
+  }
+  .plan-cta.primary { background: var(--kota-purple); color: #fff; }
+  .plan-cta.primary:hover { background: var(--kota-purple-light); box-shadow: 0 4px 16px rgba(92,59,255,0.35); }
+  .plan-cta.secondary { background: rgba(255,255,255,0.06); color: var(--kota-text); border: 1px solid var(--kota-border); }
+  .plan-cta.secondary:hover { background: rgba(255,255,255,0.1); }
+
+  /* Disclaimer */
+  .disclaimer {
+    font-size: 0.72rem;
+    color: rgba(240,238,248,0.3);
+    text-align: center;
+    line-height: 1.5;
+    margin-top: 1rem;
+  }
+
+  /* Restart */
+  .btn-restart {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    border: 1.5px solid var(--kota-border);
+    color: var(--kota-muted);
+    padding: 0.65rem 1.2rem;
+    border-radius: 100px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    margin: 1rem auto 0;
+  }
+  .btn-restart:hover { border-color: rgba(255,255,255,0.2); color: var(--kota-text); }
+
+  /* Tooltip */
+  .tooltip-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    font-size: 0.65rem;
+    color: var(--kota-muted);
+    cursor: help;
+    margin-left: 0.3rem;
+    vertical-align: middle;
+    position: relative;
+  }
+  .tooltip-trigger:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--kota-surface);
+    border: 1px solid var(--kota-border);
+    color: var(--kota-text);
+    font-size: 0.75rem;
+    font-weight: 300;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    white-space: nowrap;
+    max-width: 220px;
+    white-space: normal;
+    z-index: 10;
+    pointer-events: none;
+    line-height: 1.4;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  /* Multi-select tags */
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  .tag-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+    border: 1.5px solid var(--kota-border);
+    background: rgba(255,255,255,0.03);
+    color: var(--kota-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .tag-btn:hover { border-color: rgba(92,59,255,0.4); color: var(--kota-text); }
+  .tag-btn.selected { border-color: var(--kota-purple); background: rgba(92,59,255,0.12); color: var(--kota-text); }
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+
+<div class="app">
+  <header class="header">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      kota
+    </div>
+    <div class="header-badge">Plan Finder</div>
+  </header>
+
+  <!-- Progress bar (hidden on screen 0) -->
+  <div class="progress-bar-wrap" id="progressWrap" style="display:none">
+    <div class="progress-label">
+      <span id="progressLabel">Step 1 of 5</span>
+      <span id="progressPct">20%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:20%"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 0: Hero -->
+  <div class="screen active" id="screen-0">
+    <div style="max-width: 560px;">
+      <div class="hero-eyebrow">Powered by AI · Built on Kota</div>
+      <h1 class="hero-title">
+        Find your <em>perfect</em><br>health plan in minutes
+      </h1>
+      <p class="hero-sub">Answer a few simple questions and we'll match you to the right health insurance plan — no jargon, no broker, no confusion.</p>
+      <button class="hero-start-btn" onclick="startQuiz()">
+        Let's find my plan
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="hero-features">
+        <div class="hero-feat"><div class="hero-feat-dot"></div> Takes ~2 minutes</div>
+        <div class="hero-feat"><div class="hero-feat-dot"></div> AI-personalised results</div>
+        <div class="hero-feat"><div class="hero-feat-dot"></div> No personal data needed</div>
+        <div class="hero-feat"><div class="hero-feat-dot"></div> Regulated by Central Bank of Ireland</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 1: Team size -->
+  <div class="screen" id="screen-1">
+    <div class="q-label">Question 1 of 5</div>
+    <h2 class="q-title">How big is your team?</h2>
+    <p class="q-sub">Plan pricing and structures vary significantly by team size. This helps us surface the most relevant options.</p>
+    <div class="options-grid cols-2">
+      <button class="option-card" onclick="selectOption(this, 'teamSize', 'solo')" data-value="solo">
+        <div class="option-icon">🧑</div>
+        <div class="option-content">
+          <div class="option-title">Just me</div>
+          <div class="option-desc">Solo founder or contractor</div>
+        </div>
+        <div class="option-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </button>
+      <button class="option-card" onclick="selectOption(this, 'teamSize', '2-10')" data-value="2-10">
+        <div class="option-icon">👥</div>
+        <div class="option-content">
+          <div class="option-title">2–10 people</div>
+          <div class="option-desc">Small team, fast-moving</div>
+        </div>
+        <div class="option-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </button>
+      <button class="option-card" onclick="selectOption(this, 'teamSize', '11-50')" data-value="11-50">
+        <div class="option-icon">🏢</div>
+        <div class="option-content">
+          <div class="option-title">11–50 people</div>
+          <div class="option-desc">Growing company</div>
+        </div>
+        <div class="option-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </button>
+      <button class="option-card" onclick="selectOption(this, 'teamSize', '51+')" data-value="51+">
+        <div class="option-icon">🏙️</div>
+        <div class="option-content">
+          <div class="option-title">51+ people</div>
+          <div class="option-desc">Established organisation</div>
+        </div>
+        <div class="option-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goBack()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 7H3M6 4L3 7l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Back
+      </button>
+      <button class="btn-next" id="btn-1" onclick="nextScreen()" disabled>
+        Next
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7.5 4l3 3-3 3" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: Budget -->
+  <div class="screen" id="screen-2">
+    <div class="q-label">Question 2 of 5</div>
+    <h2 class="q-title">What's your monthly budget per employee?
+      <span class="tooltip-trigger" data-tip="This is the employer contribution towards health insurance per person per month. Employees can top up themselves.">?</span>
+    </h2>
+    <p class="q-sub">There's no wrong answer — we'll find the best value at every price point.</p>
+    <div class="slider-wrap">
+      <div class="slider-value-display" id="budgetDisplay">€80 <span>/ month per employee</span></div>
+      <input type="range" id="budgetSlider" min="30" max="300" value="80" step="5" oninput="updateBudget(this.value)">
+      <div class="slider-labels">
+        <span>€30</span>
+        <span>€300+</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goBack()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 7H3M6 4L3 7l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Back
+      </button>
+      <button class="btn-next" onclick="nextScreen()">
+        Next
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7.5 4l3 3-3 3" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: Priority -->
+  <div class="screen" id="screen-3">
+    <div class="q-label">Question 3 of 5</div>
+    <h2 class="q-title">What matters most to your team?</h2>
+    <p class="q-sub">Select up to 3 things. This shapes which coverage features we prioritise for you.</p>
+    <div class="tag-grid" id="priorityTags">
+      <button class="tag-btn" onclick="toggleTag(this, 'priorities', 'gp')" data-value="gp">🏥 GP visits</button>
+      <button class="tag-btn" onclick="toggleTag(this, 'priorities', 'mental')" data-value="mental">🧠 Mental health</button>
+      <button class="tag-btn" onclick="toggleTag(this, 'priorities', 'dental')" data-value="dental">🦷 Dental & optical</button>
+      <button class="tag-btn" onclick="toggleTag(this, 'priorities', 'specialist')" data-value="specialist">🩺 Specialist access</button>
+      <button class="tag-btn" onclick="toggleTag(this, 'priorities', 'physio')" data-value="physio">💪 Physio & wellbeing</button>
+      <button class="tag-btn" onclick="toggleTag(this, 'priorities', 'digital')" data-value="digital">📱 Digital-first care</button>
+      <button class="tag-btn" onclick="toggleTag(this, 'priorities', 'hospital')" data-value="hospital">🏨 Hospital cover</button>
+      <button class="tag-btn" onclick="toggleTag(this, 'priorities', 'global')" data-value="global">🌍 International cover</button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goBack()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 7H3M6 4L3 7l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Back
+      </button>
+      <button class="btn-next" id="btn-3" onclick="nextScreen()" disabled>
+        Next
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7.5 4l3 3-3 3" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: Existing provider -->
+  <div class="screen" id="screen-4">
+    <div class="q-label">Question 4 of 5</div>
+    <h2 class="q-title">Do you currently have health insurance?</h2>
+    <p class="q-sub">No pressure either way — this helps us tailor the recommendation for your situation.</p>
+    <div class="options-grid cols-1" style="max-width: 480px;">
+      <button class="option-card" onclick="selectOption(this, 'currentPlan', 'none')" data-value="none">
+        <div class="option-icon">🆕</div>
+        <div class="option-content">
+          <div class="option-title">Starting fresh</div>
+          <div class="option-desc">No existing cover — looking to set up for the first time</div>
+        </div>
+        <div class="option-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </button>
+      <button class="option-card" onclick="selectOption(this, 'currentPlan', 'switching')" data-value="switching">
+        <div class="option-icon">🔄</div>
+        <div class="option-content">
+          <div class="option-title">Switching provider</div>
+          <div class="option-desc">Want better value or more relevant coverage</div>
+        </div>
+        <div class="option-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </button>
+      <button class="option-card" onclick="selectOption(this, 'currentPlan', 'upgrading')" data-value="upgrading">
+        <div class="option-icon">⬆️</div>
+        <div class="option-content">
+          <div class="option-title">Upgrading current plan</div>
+          <div class="option-desc">Happy with the provider, want better coverage tiers</div>
+        </div>
+        <div class="option-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goBack()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 7H3M6 4L3 7l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Back
+      </button>
+      <button class="btn-next" id="btn-4" onclick="nextScreen()" disabled>
+        Next
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7.5 4l3 3-3 3" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: Work style -->
+  <div class="screen" id="screen-5">
+    <div class="q-label">Question 5 of 5</div>
+    <h2 class="q-title">How does your team work?</h2>
+    <p class="q-sub">This affects which plans are most practical — especially for remote or distributed teams.</p>
+    <div class="options-grid cols-2">
+      <button class="option-card" onclick="selectOption(this, 'workStyle', 'office')" data-value="office">
+        <div class="option-icon">🏢</div>
+        <div class="option-content">
+          <div class="option-title">Office-based</div>
+          <div class="option-desc">Mostly in one location</div>
+        </div>
+        <div class="option-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </button>
+      <button class="option-card" onclick="selectOption(this, 'workStyle', 'hybrid')" data-value="hybrid">
+        <div class="option-icon">🔀</div>
+        <div class="option-content">
+          <div class="option-title">Hybrid</div>
+          <div class="option-desc">Mix of office & remote</div>
+        </div>
+        <div class="option-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </button>
+      <button class="option-card" onclick="selectOption(this, 'workStyle', 'remote')" data-value="remote">
+        <div class="option-icon">🌐</div>
+        <div class="option-content">
+          <div class="option-title">Fully remote</div>
+          <div class="option-desc">Team across Ireland or EU</div>
+        </div>
+        <div class="option-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </button>
+      <button class="option-card" onclick="selectOption(this, 'workStyle', 'global')" data-value="global">
+        <div class="option-icon">✈️</div>
+        <div class="option-content">
+          <div class="option-title">Global team</div>
+          <div class="option-desc">Multiple countries involved</div>
+        </div>
+        <div class="option-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goBack()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 7H3M6 4L3 7l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Back
+      </button>
+      <button class="btn-next" id="btn-5" onclick="runAI()" disabled>
+        See my matches
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7.5 4l3 3-3 3" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 6: AI Thinking -->
+  <div class="screen" id="screen-6">
+    <div class="thinking-screen">
+      <div class="thinking-orb">
+        <svg style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)" width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 4C8.477 4 4 8.477 4 14s4.477 10 10 10 10-4.477 10-10S19.523 4 14 4z" fill="rgba(255,255,255,0.15)"/>
+          <path d="M14 8v6l3.5 3.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h2 class="thinking-title">Analysing your answers…</h2>
+      <p style="font-size:0.88rem;color:var(--kota-muted);font-weight:300;margin-bottom:0.5rem">Our AI is evaluating your profile against Kota's plan catalogue</p>
+      <ul class="thinking-steps" id="thinkingSteps">
+        <li class="thinking-step" id="step1"><div class="step-dot"></div> Reading your team profile</li>
+        <li class="thinking-step" id="step2"><div class="step-dot"></div> Scoring budget fit across plans</li>
+        <li class="thinking-step" id="step3"><div class="step-dot"></div> Matching coverage priorities</li>
+        <li class="thinking-step" id="step4"><div class="step-dot"></div> Generating personalised rationale</li>
+        <li class="thinking-step" id="step5"><div class="step-dot"></div> Ranking your top 3 plans</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SCREEN 7: Results -->
+  <div class="screen" id="screen-7">
+    <div class="results-hero">
+      <div class="results-eyebrow">✦ Your personalised matches</div>
+      <h2 class="results-title" id="resultsTitle">Here are your top plans</h2>
+      <p class="results-sub" id="resultsSub">Based on your answers, here's what we recommend.</p>
+    </div>
+
+    <div class="ai-summary" id="aiSummary">
+      <div class="ai-summary-header">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5v3.5l2 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        AI analysis
+      </div>
+      <div class="ai-summary-body" id="aiSummaryText">Loading analysis…</div>
+    </div>
+
+    <div class="plans-grid" id="plansGrid"></div>
+
+    <p class="disclaimer">Kota is regulated by the Central Bank of Ireland. Plan details are illustrative — actual pricing depends on team census. Speak to a Kota advisor for a formal quote.</p>
+
+    <button class="btn-restart" onclick="restart()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5A4.5 4.5 0 1 1 6.5 11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M2 4v2.5h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Start over
+    </button>
+  </div>
+
+</div>
+
+<script>
+// State
+const answers = {
+  teamSize: null,
+  budget: 80,
+  priorities: [],
+  currentPlan: null,
+  workStyle: null
+};
+
+let currentScreen = 0;
+const TOTAL_STEPS = 5;
+
+// Navigation
+function startQuiz() {
+  goToScreen(1);
+}
+
+function goToScreen(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + n).classList.add('active');
+  currentScreen = n;
+  updateProgress(n);
+
+  if (n >= 1 && n <= 5) {
+    document.getElementById('progressWrap').style.display = 'block';
+  } else {
+    document.getElementById('progressWrap').style.display = 'none';
+  }
+}
+
+function updateProgress(step) {
+  if (step < 1 || step > 5) return;
+  const pct = Math.round((step / TOTAL_STEPS) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `Step ${step} of ${TOTAL_STEPS}`;
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+function nextScreen() {
+  goToScreen(currentScreen + 1);
+}
+
+function goBack() {
+  if (currentScreen > 1) {
+    goToScreen(currentScreen - 1);
+  } else {
+    goToScreen(0);
+  }
+}
+
+function restart() {
+  answers.teamSize = null; answers.budget = 80; answers.priorities = []; answers.currentPlan = null; answers.workStyle = null;
+  document.querySelectorAll('.option-card.selected').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.tag-btn.selected').forEach(t => t.classList.remove('selected'));
+  document.querySelectorAll('.btn-next[disabled]').forEach(b => b.disabled = true);
+  document.getElementById('budgetSlider').value = 80;
+  updateBudget(80);
+  goToScreen(0);
+}
+
+// Option selection (single)
+function selectOption(el, key, value) {
+  const parent = el.closest('.options-grid');
+  parent.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[key] = value;
+
+  // Enable next button for this screen
+  const screenEl = el.closest('.screen');
+  const nextBtn = screenEl.querySelector('.btn-next');
+  if (nextBtn) nextBtn.disabled = false;
+}
+
+// Multi-select tags (max 3)
+function toggleTag(el, key, value) {
+  const arr = answers[key];
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    answers[key] = arr.filter(v => v !== value);
+  } else {
+    if (arr.length >= 3) return; // max 3
+    el.classList.add('selected');
+    arr.push(value);
+  }
+  const btn = document.getElementById('btn-3');
+  btn.disabled = answers[key].length === 0;
+}
+
+// Budget slider
+function updateBudget(val) {
+  answers.budget = parseInt(val);
+  document.getElementById('budgetDisplay').innerHTML = `€${val} <span>/ month per employee</span>`;
+  // Track fill
+  const slider = document.getElementById('budgetSlider');
+  const pct = ((val - 30) / (300 - 30)) * 100;
+  slider.style.background = `linear-gradient(to right, var(--kota-purple) ${pct}%, rgba(255,255,255,0.1) ${pct}%)`;
+}
+updateBudget(80); // init
+
+// AI Thinking animation + API call
+async function runAI() {
+  goToScreen(6);
+
+  // Animate thinking steps
+  const steps = [1,2,3,4,5];
+  for (let i = 0; i < steps.length; i++) {
+    await delay(600 + i * 300);
+    const el = document.getElementById('step' + steps[i]);
+    el.classList.add('visible');
+    if (i > 0) {
+      document.getElementById('step' + steps[i-1]).classList.add('done');
+      document.getElementById('step' + steps[i-1]).querySelector('.step-dot').style.animation = 'none';
+    }
+  }
+
+  // Call Claude API in parallel
+  const aiResult = await callClaudeAPI();
+
+  await delay(500);
+  document.getElementById('step5').classList.add('done');
+
+  await delay(300);
+
+  // Render results
+  renderResults(aiResult);
+  goToScreen(7);
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function callClaudeAPI() {
+  const priorityLabels = {
+    gp: 'GP visits', mental: 'Mental health support', dental: 'Dental & optical',
+    specialist: 'Specialist access', physio: 'Physio & wellbeing', digital: 'Digital-first care',
+    hospital: 'Hospital cover', global: 'International cover'
+  };
+  const selectedPriorities = answers.priorities.map(p => priorityLabels[p] || p).join(', ');
+
+  const prompt = `You are an expert health insurance advisor for Kota (kota.io), a modern employee benefits platform regulated by the Central Bank of Ireland serving companies primarily in Ireland and the UK.
+
+A user has just completed a plan-finder questionnaire. Here are their answers:
+- Team size: ${answers.teamSize}
+- Monthly budget per employee: €${answers.budget}
+- Coverage priorities: ${selectedPriorities || 'Not specified'}
+- Current insurance situation: ${answers.currentPlan}
+- Work style: ${answers.workStyle}
+
+Based on this profile, produce a JSON response (and ONLY JSON, no markdown, no preamble) in this exact format:
+
+{
+  "resultsTitle": "A warm, personalised 6-10 word headline for their results",
+  "resultsSub": "A 1-sentence personalised subtitle (max 20 words)",
+  "summary": "A 2-3 sentence plain-English AI analysis explaining WHY these plans suit this specific user. Reference their budget, team size, and top priorities. Be warm, concrete and jargon-free.",
+  "plans": [
+    {
+      "name": "Plan name (e.g. Kota Essential, Kota Core, Kota Plus, Kota Premium)",
+      "tagline": "One-line plan description (max 12 words)",
+      "matchScore": 95,
+      "priceFrom": 55,
+      "recommended": true,
+      "whyThis": "1 sentence: why this plan specifically matches this user's situation",
+      "features": [
+        { "text": "Unlimited GP visits via app", "included": true },
+        { "text": "Mental health sessions (6/year)", "included": true },
+        { "text": "Dental & optical allowance", "included": false },
+        { "text": "Specialist referrals covered", "included": true },
+        { "text": "Hospital day-case cover", "included": true }
+      ]
+    },
+    {
+      "name": "Second plan name",
+      "tagline": "One-line description",
+      "matchScore": 80,
+      "priceFrom": 40,
+      "recommended": false,
+      "whyThis": "1 sentence why this is a solid alternative",
+      "features": [
+        { "text": "GP visits (3/year)", "included": true },
+        { "text": "Mental health sessions (3/year)", "included": true },
+        { "text": "Dental & optical allowance", "included": false },
+        { "text": "Specialist referrals covered", "included": false },
+        { "text": "Hospital day-case cover", "included": false }
+      ]
+    },
+    {
+      "name": "Third plan name",
+      "tagline": "One-line description",
+      "matchScore": 65,
+      "priceFrom": 90,
+      "recommended": false,
+      "whyThis": "1 sentence why this is worth considering if budget allows",
+      "features": [
+        { "text": "Unlimited GP visits", "included": true },
+        { "text": "Mental health sessions (12/year)", "included": true },
+        { "text": "Dental & optical allowance", "included": true },
+        { "text": "Specialist referrals covered", "included": true },
+        { "text": "Hospital cover (semi-private)", "included": true }
+      ]
+    }
+  ]
+}
+
+Make plan names feel like real Kota products (Essential, Core, Plus, Premium, or similar). Prices should be realistic relative to the user's stated budget of €${answers.budget}/month. The recommended plan should be within or just above their budget. Be helpful, specific, and human — avoid insurance jargon.`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.map(b => b.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+  } catch (e) {
+    // Fallback if API fails
+    return getFallbackResult();
+  }
+}
+
+function getFallbackResult() {
+  return {
+    resultsTitle: "Your plan matches are ready",
+    resultsSub: "We've found three options tailored to your team.",
+    summary: `Based on your team profile and budget of <strong>€${answers.budget}/month per employee</strong>, we've prioritised plans with strong ${answers.priorities[0] || 'core'} coverage. The recommended plan balances value with the features your team actually needs.`,
+    plans: [
+      { name: "Kota Core", tagline: "Solid essentials for growing teams", matchScore: 92, priceFrom: answers.budget - 5 > 30 ? answers.budget - 5 : 35, recommended: true, whyThis: "Matches your budget and covers your top priorities without unnecessary extras.", features: [{ text: "Unlimited GP visits via app", included: true }, { text: "Mental health sessions (6/year)", included: true }, { text: "Dental & optical allowance", included: false }, { text: "Specialist referrals covered", included: true }, { text: "Hospital day-case cover", included: false }] },
+      { name: "Kota Essential", tagline: "Budget-friendly cover that gets the job done", matchScore: 74, priceFrom: Math.round(answers.budget * 0.6), recommended: false, whyThis: "A leaner option if you want to keep monthly costs lower.", features: [{ text: "GP visits (3/year)", included: true }, { text: "Mental health sessions (3/year)", included: true }, { text: "Dental & optical allowance", included: false }, { text: "Specialist referrals covered", included: false }, { text: "Hospital day-case cover", included: false }] },
+      { name: "Kota Plus", tagline: "Comprehensive cover for teams that want more", matchScore: 61, priceFrom: Math.round(answers.budget * 1.4), recommended: false, whyThis: "If budget grows, this unlocks significantly more coverage depth.", features: [{ text: "Unlimited GP visits", included: true }, { text: "Mental health sessions (12/year)", included: true }, { text: "Dental & optical allowance", included: true }, { text: "Specialist referrals covered", included: true }, { text: "Hospital cover (semi-private)", included: true }] }
+    ]
+  };
+}
+
+function renderResults(data) {
+  document.getElementById('resultsTitle').textContent = data.resultsTitle || 'Your plan matches';
+  document.getElementById('resultsSub').textContent = data.resultsSub || '';
+  document.getElementById('aiSummaryText').innerHTML = data.summary || '';
+
+  const grid = document.getElementById('plansGrid');
+  grid.innerHTML = '';
+
+  (data.plans || []).forEach((plan, i) => {
+    const featuresHTML = (plan.features || []).map(f => `
+      <li class="plan-feature">
+        <span class="${f.included ? 'feat-check' : 'feat-cross'}">${f.included ? '✓' : '✕'}</span>
+        ${f.text}
+      </li>
+    `).join('');
+
+    const matchWidth = (plan.matchScore || 70) + '%';
+    const card = document.createElement('div');
+    card.className = 'plan-card' + (plan.recommended ? ' recommended' : '');
+    card.innerHTML = `
+      <div class="plan-badge-row">
+        ${plan.recommended ? '<span class="plan-badge">Best match</span>' : ''}
+      </div>
+      <div class="plan-body">
+        <div class="plan-match-score">
+          <span>${plan.matchScore || 70}% match</span>
+          <div class="match-bar"><div class="match-bar-fill" style="width:${matchWidth}"></div></div>
+        </div>
+        <div class="plan-name">${plan.name}</div>
+        <div class="plan-tagline">${plan.tagline}</div>
+        <div class="plan-price-row">
+          <div class="plan-price">€${plan.priceFrom}</div>
+          <div class="plan-price-period">/ mo per employee</div>
+        </div>
+        <ul class="plan-features">${featuresHTML}</ul>
+        <div class="plan-why">"${plan.whyThis}"</div>
+        <button class="plan-cta ${plan.recommended ? 'primary' : 'secondary'}" onclick="handleCTA('${plan.name}', ${plan.recommended})">
+          ${plan.recommended ? 'Get started with this plan' : 'Learn more'}
+        </button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function handleCTA(planName, isRecommended) {
+  if (isRecommended) {
+    window.open('https://partner.kota.io/kota-demo', '_blank');
+  } else {
+    alert(`You'd like to learn more about ${planName}. In the full product, this would open a plan detail page or connect you with a Kota advisor.`);
+  }
+}
+</script>
+</body>
+</html>
