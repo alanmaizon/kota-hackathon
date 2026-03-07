@@ -256,20 +256,23 @@ export function ResultsView({ scoredPlans, explanation, onRestart }: ResultsView
                     </div>
                   </div>
                 )}
-                {chatMessages.map((msg, i) => (
-                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div
-                      className="max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed"
-                      style={
-                        msg.role === 'user'
-                          ? { backgroundColor: 'var(--cloud-accent)', color: '#ffffff' }
-                          : { backgroundColor: 'var(--cloud-bg)', color: 'var(--cloud-text)', border: '1px solid var(--cloud-border)' }
-                      }
-                    >
-                      {msg.text}
+                {chatMessages.map((msg, i) => {
+                  if (msg.role === 'ai' && !msg.text) return null;
+                  return (
+                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div
+                        className="max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed"
+                        style={
+                          msg.role === 'user'
+                            ? { backgroundColor: 'var(--cloud-accent)', color: '#ffffff' }
+                            : { backgroundColor: 'var(--cloud-bg)', color: 'var(--cloud-text)', border: '1px solid var(--cloud-border)' }
+                        }
+                      >
+                        {msg.text}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {chatLoading && chatMessages[chatMessages.length - 1]?.text === '' && (
                   <div className="flex justify-start">
                     <div
