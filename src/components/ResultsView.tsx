@@ -18,23 +18,42 @@ export function ResultsView({ scoredPlans, explanation, onRestart }: ResultsView
 
   const topPlan = scoredPlans[0];
 
-  // ─── Chat handler (AI-powered) ────────────────────────────────────────────
+  // ─── Chat handler (AI-powered with streaming) ─────────────────────────────
   async function handleChatSend(message?: string) {
     const text = message || chatInput.trim();
     if (!text || chatLoading) return;
     setChatInput('');
-    const updatedMessages = [...chatMessages, { role: 'user' as const, text }];
-    setChatMessages(updatedMessages);
+    const history = [...chatMessages];
+    setChatMessages((prev) => [...prev, { role: 'user' as const, text }]);
     setChatLoading(true);
 
     try {
-      const response = await chatWithKotaAI(text, scoredPlans, chatMessages);
-      setChatMessages((prev) => [...prev, { role: 'ai', text: response }]);
+      // Add a placeholder AI message that we'll stream into
+      setChatMessages((prev) => [...prev, { role: 'ai', text: '' }]);
+
+      await chatWithKotaAI(text, scoredPlans, history, (token) => {
+        setChatMessages((prev) => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last.role === 'ai') {
+            updated[updated.length - 1] = { ...last, text: last.text + token };
+          }
+          return updated;
+        });
+      });
     } catch {
-      setChatMessages((prev) => [
-        ...prev,
-        { role: 'ai', text: `Your recommended plan (${topPlan.plan.name}) is priced at ${topPlan.plan.price} for teams of ${topPlan.plan.teamSize}. Book a demo at https://partner.kota.io/kota-demo for a personalised quote.` },
-      ]);
+      setChatMessages((prev) => {
+        // Replace the empty/partial streaming message with fallback
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        if (last.role === 'ai' && !last.text) {
+          updated[updated.length - 1] = {
+            role: 'ai',
+            text: `Your recommended plan (${topPlan.plan.name}) is priced at ${topPlan.plan.price} for teams of ${topPlan.plan.teamSize}. Book a demo at https://partner.kota.io/kota-demo for a personalised quote.`,
+          };
+        }
+        return updated;
+      });
     } finally {
       setChatLoading(false);
     }
@@ -251,7 +270,7 @@ export function ResultsView({ scoredPlans, explanation, onRestart }: ResultsView
                     </div>
                   </div>
                 ))}
-                {chatLoading && (
+                {chatLoading && chatMessages[chatMessages.length - 1]?.text === '' && (
                   <div className="flex justify-start">
                     <div
                       className="px-4 py-2.5 rounded-2xl text-sm"

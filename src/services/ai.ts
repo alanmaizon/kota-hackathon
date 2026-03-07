@@ -253,6 +253,7 @@ export async function chatWithKotaAI(
   question: string,
   scoredPlans: ScoredPlan[],
   chatHistory: { role: 'user' | 'ai'; text: string }[],
+  onToken?: (token: string) => void,
 ): Promise<string> {
   const apiKey = (import.meta.env.VITE_ANTHROPIC_API_KEY as string) || '';
   if (!apiKey || apiKey === 'your-anthropic-api-key-here') {
@@ -309,6 +310,7 @@ RULES:
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 300,
+      stream: true,
       system: systemPrompt,
       messages,
     }),
@@ -319,11 +321,40 @@ RULES:
     throw new Error((error as { error?: { message?: string } }).error?.message || `API error ${response.status}`);
   }
 
-  const data = await response.json() as { content: { type: string; text: string }[] };
-  const text = data.content?.[0]?.text;
-  if (!text) throw new Error('No response from AI');
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('No response stream');
 
-  return text;
+  const decoder = new TextDecoder();
+  let fullText = '';
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const data = line.slice(6);
+      if (data === '[DONE]') continue;
+
+      try {
+        const event = JSON.parse(data);
+        if (event.type === 'content_block_delta' && event.delta?.text) {
+          fullText += event.delta.text;
+          onToken?.(event.delta.text);
+        }
+      } catch {
+        // skip malformed SSE lines
+      }
+    }
+  }
+
+  if (!fullText) throw new Error('No response from AI');
+  return fullText;
 }
 
 export function getRuleBasedExplanation(
