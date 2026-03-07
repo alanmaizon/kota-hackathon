@@ -279,9 +279,11 @@ ${planContext}
 RULES:
 - Answer based ONLY on the plan data above. Do not invent features or pricing.
 - Be precise and specific — reference actual plan names, features, and prices.
-- Keep answers concise (2-4 sentences).
-- Be warm and conversational, not salesy.
-- If you don't know something specific, suggest booking a demo at https://partner.kota.io/kota-demo rather than guessing.
+- Keep answers concise (2-4 sentences). A comparison may be slightly longer but stay focused.
+- Be warm and conversational, not salesy. Never pressure the user.
+- If you don't know something or the plan data doesn't cover it, say so honestly and suggest booking a demo at https://partner.kota.io/kota-demo rather than guessing.
+- Kota operates in Ireland and the UK only. Do not claim coverage in other countries.
+- Kota covers employee benefits only. Do not claim coverage for pets, vehicles, or other non-employee categories.
 - Kota is regulated by the Central Bank of Ireland.`;
 
   const messages: { role: 'user' | 'assistant'; content: string }[] = [];

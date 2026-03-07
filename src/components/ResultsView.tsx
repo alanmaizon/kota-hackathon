@@ -217,9 +217,9 @@ export function ResultsView({ scoredPlans, explanation, onRestart }: ResultsView
                     <div className="flex flex-wrap justify-center gap-2">
                       {[
                         'How much will this cost my team?',
+                        "What's the difference between plans?",
                         'What mental health support is included?',
                         'Can I upgrade later?',
-                        'How fast can we get set up?',
                       ].map((q) => (
                         <button
                           key={q}
