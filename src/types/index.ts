@@ -8,10 +8,10 @@ export interface PlanFeature {
 export interface Plan {
   id: string;
   name: string;
-  tier: 'starter' | 'growth' | 'premium' | 'enterprise';
+  tier: 'startup' | 'scaleup' | 'growth';
   tagline: string;
-  monthlyPrice: { min: number; max: number };
-  annualSavings: number;
+  price: string;
+  teamSize: string;
   features: PlanFeature[];
   coverageHighlights: string[];
   bestFor: string;

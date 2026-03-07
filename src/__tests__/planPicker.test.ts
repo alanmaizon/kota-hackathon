@@ -4,8 +4,8 @@ import { scoreAndRankPlans, getRuleBasedExplanation } from '../services/ai';
 import type { UserAnswers } from '../types';
 
 describe('Plan data', () => {
-  it('has exactly 4 plans', () => {
-    expect(PLANS).toHaveLength(4);
+  it('has exactly 3 plans', () => {
+    expect(PLANS).toHaveLength(3);
   });
 
   it('each plan has required fields', () => {
@@ -14,15 +14,30 @@ describe('Plan data', () => {
       expect(plan.name).toBeTruthy();
       expect(plan.features.length).toBeGreaterThan(0);
       expect(plan.weights).toBeDefined();
+      expect(plan.price).toBeTruthy();
+      expect(plan.teamSize).toBeTruthy();
     }
   });
 
   it('has the expected plan IDs', () => {
     const ids = PLANS.map((p) => p.id);
-    expect(ids).toContain('essential');
+    expect(ids).toContain('startup');
+    expect(ids).toContain('scaleup');
     expect(ids).toContain('growth');
-    expect(ids).toContain('premium');
-    expect(ids).toContain('enterprise');
+  });
+
+  it('contains canonical pricing data', () => {
+    const startup = PLANS.find((p) => p.id === 'startup')!;
+    expect(startup.price).toContain('9');
+    expect(startup.teamSize).toContain('30');
+
+    const scaleup = PLANS.find((p) => p.id === 'scaleup')!;
+    expect(scaleup.price).toContain('6');
+    expect(scaleup.teamSize).toContain('200');
+
+    const growth = PLANS.find((p) => p.id === 'growth')!;
+    expect(growth.price).toBe('Talk to our team');
+    expect(growth.teamSize).toContain('201');
   });
 });
 
@@ -51,7 +66,7 @@ describe('Questions data', () => {
 });
 
 describe('Scoring engine', () => {
-  it('recommends Essential for minimal budget small team', () => {
+  it('recommends Startup for minimal budget small team', () => {
     const answers: UserAnswers = {
       teamSize: '1-10',
       budget: 'minimal',
@@ -60,15 +75,27 @@ describe('Scoring engine', () => {
       extras: '',
     };
     const ranked = scoreAndRankPlans(answers);
-    expect(ranked[0].plan.id).toBe('essential');
+    expect(ranked[0].plan.id).toBe('startup');
     expect(ranked[0].matchPercentage).toBeGreaterThan(70);
   });
 
-  it('recommends Growth for moderate budget', () => {
+  it('recommends Scaleup for moderate budget mid-size team', () => {
     const answers: UserAnswers = {
-      teamSize: '11-50',
+      teamSize: '31-200',
       budget: 'moderate',
       priorities: ['mental-health', 'dental-optical'],
+      dealbreakers: [],
+      extras: '',
+    };
+    const ranked = scoreAndRankPlans(answers);
+    expect(ranked[0].plan.id).toBe('scaleup');
+  });
+
+  it('recommends Growth for best-in-class budget large team', () => {
+    const answers: UserAnswers = {
+      teamSize: '200+',
+      budget: 'best-in-class',
+      priorities: ['mental-health', 'international'],
       dealbreakers: [],
       extras: '',
     };
@@ -76,41 +103,29 @@ describe('Scoring engine', () => {
     expect(ranked[0].plan.id).toBe('growth');
   });
 
-  it('recommends Premium for competitive budget with priorities', () => {
-    const answers: UserAnswers = {
-      teamSize: '51-200',
-      budget: 'competitive',
-      priorities: ['mental-health', 'international'],
-      dealbreakers: ['mental-health'],
-      extras: '',
-    };
-    const ranked = scoreAndRankPlans(answers);
-    expect(ranked[0].plan.id).toBe('premium');
-  });
-
   it('penalizes plans that violate dealbreakers', () => {
     const answers: UserAnswers = {
-      teamSize: '11-50',
-      budget: 'minimal',
-      priorities: ['dental-optical'],
-      dealbreakers: ['dental-optical'],
+      teamSize: '31-200',
+      budget: 'moderate',
+      priorities: ['international'],
+      dealbreakers: ['international'],
       extras: '',
     };
     const ranked = scoreAndRankPlans(answers);
-    // Essential has dental: 0.0, so it should be penalized despite budget fit
-    expect(ranked[0].plan.id).not.toBe('essential');
+    // Startup has international: 0.0, so it should be penalized
+    expect(ranked[0].plan.id).not.toBe('startup');
   });
 
-  it('returns 4 plans with descending match percentages', () => {
+  it('returns 3 plans with descending match percentages', () => {
     const answers: UserAnswers = {
-      teamSize: '11-50',
+      teamSize: '31-200',
       budget: 'moderate',
       priorities: ['mental-health'],
       dealbreakers: [],
       extras: '',
     };
     const ranked = scoreAndRankPlans(answers);
-    expect(ranked).toHaveLength(4);
+    expect(ranked).toHaveLength(3);
     for (let i = 1; i < ranked.length; i++) {
       expect(ranked[i].matchPercentage).toBeLessThan(ranked[i - 1].matchPercentage);
     }
@@ -118,7 +133,7 @@ describe('Scoring engine', () => {
 
   it('generates reasons and warnings', () => {
     const answers: UserAnswers = {
-      teamSize: '11-50',
+      teamSize: '31-200',
       budget: 'moderate',
       priorities: ['mental-health', 'international'],
       dealbreakers: ['international'],
@@ -126,16 +141,16 @@ describe('Scoring engine', () => {
     };
     const ranked = scoreAndRankPlans(answers);
     expect(ranked[0].reasons.length).toBeGreaterThan(0);
-    // Essential should warn about missing international (dealbreaker forces dimension to 1.0)
-    const essential = ranked.find((r) => r.plan.id === 'essential');
-    expect(essential?.warnings.length).toBeGreaterThan(0);
+    // Startup should warn about missing international (dealbreaker forces dimension to 1.0)
+    const startup = ranked.find((r) => r.plan.id === 'startup');
+    expect(startup?.warnings.length).toBeGreaterThan(0);
   });
 });
 
 describe('Rule-based explanation', () => {
   it('generates a complete explanation', () => {
     const answers: UserAnswers = {
-      teamSize: '11-50',
+      teamSize: '31-200',
       budget: 'moderate',
       priorities: ['mental-health'],
       dealbreakers: [],

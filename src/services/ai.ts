@@ -36,13 +36,13 @@ function buildUserProfile(answers: UserAnswers): Record<string, number> {
       profile.scalability = 0.3;
       profile.speedOfAccess = 0.9;
       break;
-    case '11-50':
-      profile.startupFriendly = 0.7;
-      profile.scalability = 0.7;
+    case '11-30':
+      profile.startupFriendly = 0.8;
+      profile.scalability = 0.5;
       break;
-    case '51-200':
+    case '31-200':
       profile.startupFriendly = 0.3;
-      profile.scalability = 0.9;
+      profile.scalability = 0.85;
       break;
     case '200+':
       profile.startupFriendly = 0.1;
@@ -89,16 +89,15 @@ function buildUserProfile(answers: UserAnswers): Record<string, number> {
 }
 
 function getBudgetFit(plan: Plan, budgetMindset: string): number {
-  if (plan.monthlyPrice.max === 0) return 0.7;
   switch (budgetMindset) {
     case 'minimal':
-      return plan.tier === 'starter' ? 1.0 : plan.tier === 'growth' ? 0.5 : 0.2;
+      return plan.tier === 'startup' ? 1.0 : plan.tier === 'scaleup' ? 0.5 : 0.2;
     case 'moderate':
-      return plan.tier === 'growth' ? 1.0 : plan.tier === 'starter' ? 0.8 : 0.4;
+      return plan.tier === 'scaleup' ? 1.0 : plan.tier === 'startup' ? 0.8 : 0.4;
     case 'competitive':
-      return plan.tier === 'premium' ? 1.0 : plan.tier === 'growth' ? 0.8 : 0.3;
+      return plan.tier === 'scaleup' ? 0.9 : plan.tier === 'growth' ? 1.0 : 0.4;
     case 'best-in-class':
-      return plan.tier === 'premium' ? 1.0 : plan.tier === 'enterprise' ? 0.9 : 0.4;
+      return plan.tier === 'growth' ? 1.0 : plan.tier === 'scaleup' ? 0.6 : 0.3;
     default:
       return 0.7;
   }
@@ -109,10 +108,8 @@ function generateReasons(plan: Plan, profile: Record<string, number>): string[] 
 
   if (profile.budgetSensitivity > 0.7 && plan.weights.budgetSensitivity > 0.7)
     reasons.push('Fits within your budget-conscious approach without sacrificing essentials');
-  if (profile.mentalHealth > 0.6 && plan.weights.mentalHealth > 0.6) {
-    const mh = plan.features.find((f) => f.name === 'Mental health');
-    if (mh?.included) reasons.push(`Strong mental health support: ${mh.detail}`);
-  }
+  if (profile.mentalHealth > 0.6 && plan.weights.mentalHealth > 0.6)
+    reasons.push('Strong mental health support included');
   if (profile.dental > 0.6 && plan.weights.dental > 0.6)
     reasons.push('Includes the dental coverage your team needs');
   if (profile.international > 0.6 && plan.weights.international > 0.6)
@@ -129,10 +126,9 @@ function generateReasons(plan: Plan, profile: Record<string, number>): string[] 
     reasons.push('Industry-leading breadth of coverage to attract top talent');
 
   if (reasons.length < 2) {
-    if (plan.tier === 'starter') reasons.push('Get started quickly with no minimum commitment');
-    if (plan.tier === 'growth') reasons.push('The most popular plan among similar companies');
-    if (plan.tier === 'premium') reasons.push('Best-in-class benefits your team will love');
-    if (plan.tier === 'enterprise') reasons.push('Fully customisable to your exact requirements');
+    if (plan.tier === 'startup') reasons.push('Get started quickly with core & flexible benefits');
+    if (plan.tier === 'scaleup') reasons.push('Lower per-employee cost with live onboarding support');
+    if (plan.tier === 'growth') reasons.push('Full access to a dedicated team of benefits experts');
   }
 
   return reasons.slice(0, 4);
@@ -141,7 +137,7 @@ function generateReasons(plan: Plan, profile: Record<string, number>): string[] 
 function generateWarnings(plan: Plan, profile: Record<string, number>): string[] {
   const warnings: string[] = [];
   if (profile.dental > 0.7 && plan.weights.dental < 0.3)
-    warnings.push('Does not include dental coverage');
+    warnings.push('Limited dental coverage on this tier');
   if (profile.international > 0.7 && plan.weights.international < 0.3)
     warnings.push('No international coverage \u2014 consider upgrading if hiring abroad');
   if (profile.mentalHealth > 0.8 && plan.weights.mentalHealth < 0.5)
@@ -153,13 +149,11 @@ function generateWarnings(plan: Plan, profile: Record<string, number>): string[]
 
 function generateInsight(plan: Plan, profile: Record<string, number>, rank: number): string {
   if (rank === 0) {
-    if (plan.tier === 'starter')
+    if (plan.tier === 'startup')
       return 'This plan gives you exactly what your team needs right now. It\'s lean, fast to set up, and lets you invest your budget where it matters most. You can always upgrade as you grow.';
-    if (plan.tier === 'growth')
-      return 'This is the sweet spot for your team. You get solid coverage that shows employees you\'re serious about their wellbeing, without the enterprise price tag. 60% of companies your size choose this plan.';
-    if (plan.tier === 'premium')
-      return 'Your team deserves the best, and this plan delivers. Unlimited mental health support, international coverage, and family options make this a powerful recruitment and retention tool.';
-    return 'With your team\'s complexity, a bespoke solution makes the most sense. We\'ll design coverage that fits your exact needs across every location and entity.';
+    if (plan.tier === 'scaleup')
+      return 'This is the sweet spot for your team. You get efficient people & finance processes at a lower per-employee cost, with live onboarding to get you started right.';
+    return 'With your team\'s size and ambition, a full-service solution makes the most sense. Your dedicated team of benefits experts will design coverage that fits your exact needs.';
   }
   if (rank === 1) {
     return `A strong alternative worth considering. It scores ${profile.budgetSensitivity > 0.6 ? 'well on value' : 'highly on coverage'}, though your top match edges it out on the dimensions that matter most to you.`;
@@ -237,13 +231,13 @@ export function scoreAndRankPlans(answers: UserAnswers): ScoredPlan[] {
 
 export function getSmartFollowUp(answers: Partial<UserAnswers>): string | null {
   if (answers.teamSize === '200+' && !((answers.dealbreakers as string[])?.length)) {
-    return 'With a team that size, international coverage and custom integrations often become critical. Consider flagging those as must-haves.';
+    return 'With a team that size, international coverage and expert support often become critical. Consider flagging those as must-haves.';
   }
   if (
     (answers.priorities as string[])?.includes('mental-health') &&
     answers.budget === 'minimal'
   ) {
-    return 'Mental health support is a top priority, but your budget is tight. Growth plan offers 12 sessions/year at moderate cost \u2014 a solid middle ground.';
+    return 'Mental health support is a top priority, but your budget is tight. The Scaleup plan offers strong coverage at a lower per-employee cost \u2014 a solid middle ground.';
   }
   if (
     (answers.priorities as string[])?.includes('international') &&
@@ -265,11 +259,7 @@ const PLAN_CATALOGUE = PLANS.map((p) => {
     .filter((f) => !f.included)
     .map((f) => f.name)
     .join(', ');
-  const price =
-    p.monthlyPrice.max > 0
-      ? `\u20AC${p.monthlyPrice.min}\u2013${p.monthlyPrice.max}/mo per employee`
-      : 'Custom pricing';
-  return `${p.name} (${price})\n  Includes: ${included}\n  Excludes: ${excluded || 'Nothing \u2014 full coverage'}\n  Best for: ${p.bestFor}`;
+  return `${p.name} (${p.price}, ${p.teamSize})\n  Includes: ${included}\n  Excludes: ${excluded || 'Nothing \u2014 full coverage'}\n  Best for: ${p.bestFor}`;
 }).join('\n\n');
 
 function buildExplainerPrompt(answers: UserAnswers, scoredPlans: ScoredPlan[]): string {
@@ -360,9 +350,9 @@ export function getRuleBasedExplanation(
   const teamDesc =
     answers.teamSize === '1-10'
       ? 'small team'
-      : answers.teamSize === '11-50'
+      : answers.teamSize === '11-30'
         ? 'growing team'
-        : answers.teamSize === '51-200'
+        : answers.teamSize === '31-200'
           ? 'mid-size organisation'
           : 'large organisation';
 
@@ -370,9 +360,6 @@ export function getRuleBasedExplanation(
     summary: `Based on your ${teamDesc}'s focus on ${topPriority}, ${top.plan.name} is your strongest match at ${top.matchPercentage}%. ${top.personalizedInsight}`,
     topPickHeadline: `${top.plan.name} covers your top priorities without unnecessary extras.`,
     topPickReasoning: top.reasons.join('. ') + '.',
-    savingsTip:
-      top.plan.annualSavings > 0
-        ? `Annual billing saves ${top.plan.annualSavings}% \u2014 worth considering once you've confirmed the plan works for your team.`
-        : 'Speak to a Kota advisor to discuss custom pricing that fits your exact needs.',
+    savingsTip: 'Book a demo with our team to get a personalised quote tailored to your specific needs and team size.',
   };
 }
