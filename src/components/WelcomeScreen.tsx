@@ -109,24 +109,6 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
         </div>
       </section>
 
-      {/* ─── Trusted by ───────────────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.9 }}
-        className="py-12 text-center"
-        style={{ backgroundColor: 'var(--cloud-bg)' }}
-      >
-        <p className="text-sm mb-4" style={{ color: 'var(--cloud-muted)' }}>Trusted by teams at</p>
-        <div className="flex items-center justify-center gap-8 flex-wrap" style={{ opacity: 0.5 }}>
-          {['Intercom', 'Stripe', 'Personio', 'Wayflyer', 'Flipdish'].map((name) => (
-            <span key={name} className="text-sm font-semibold tracking-wide" style={{ color: 'var(--cloud-text)' }}>
-              {name}
-            </span>
-          ))}
-        </div>
-      </motion.div>
-
       {/* ─── Footer watermark ──────────────────────────────────────────── */}
       <div className="py-6 text-center" style={{ backgroundColor: 'var(--cloud-bg)' }}>
         <div className="flex items-center justify-center gap-2" style={{ opacity: 0.45 }}>

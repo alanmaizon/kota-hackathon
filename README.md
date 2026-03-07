@@ -11,10 +11,10 @@ HR teams waste hours comparing benefits plans on spreadsheets. Kota AI Agent rep
 ```mermaid
 flowchart LR
     A[User lands] --> B[6-Question Quiz]
-    B --> C[Scoring Engine\n11 dimensions]
-    C --> D[Ranked Plans\nwith % match]
-    D --> E[Streaming AI Chat\nContextual Q&A]
-    E --> F[Book a Demo\nCTA conversion]
+    B --> C[Scoring Engine 11 dimensions]
+    C --> D[Ranked Plans with % match]
+    D --> E[Streaming AI Chat Contextual Q&A]
+    E --> F[Book a Demo CTA conversion]
 
     subgraph Client-Side
         B
@@ -44,7 +44,7 @@ flowchart TD
     subgraph Services
         SE[Scoring Engine\nai.ts] --> |weights + profile| RV
         Chat --> |SSE stream| Proxy[Vite Proxy]
-        Proxy --> API[Claude API\nHaiku 4.5]
+        Proxy --> API[Claude API Haiku 4.5]
     end
 
     subgraph Eval [Prompt Evaluation]
