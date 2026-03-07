@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { PLANS, QUESTIONS } from '../data/plans';
-import { getRuleBased } from '../services/ai';
+import { scoreAndRankPlans, getRuleBasedExplanation } from '../services/ai';
 import type { UserAnswers } from '../types';
 
 describe('Plan data', () => {
@@ -12,35 +12,29 @@ describe('Plan data', () => {
     for (const plan of PLANS) {
       expect(plan.id).toBeTruthy();
       expect(plan.name).toBeTruthy();
-      expect(plan.monthlyPrice).toBeGreaterThan(0);
       expect(plan.features.length).toBeGreaterThan(0);
-    }
-  });
-
-  it('plans are ordered by price ascending', () => {
-    const prices = PLANS.map((p) => p.monthlyPrice);
-    for (let i = 1; i < prices.length; i++) {
-      expect(prices[i]).toBeGreaterThan(prices[i - 1]);
+      expect(plan.weights).toBeDefined();
     }
   });
 
   it('has the expected plan IDs', () => {
     const ids = PLANS.map((p) => p.id);
     expect(ids).toContain('essential');
-    expect(ids).toContain('standard');
+    expect(ids).toContain('growth');
     expect(ids).toContain('premium');
-    expect(ids).toContain('elite');
+    expect(ids).toContain('enterprise');
   });
 });
 
 describe('Questions data', () => {
-  it('has 6 questions', () => {
-    expect(QUESTIONS).toHaveLength(6);
+  it('has 5 questions', () => {
+    expect(QUESTIONS).toHaveLength(5);
   });
 
-  it('each question has id and question text', () => {
+  it('each question has id, field, and question text', () => {
     for (const q of QUESTIONS) {
       expect(q.id).toBeTruthy();
+      expect(q.field).toBeTruthy();
       expect(q.question).toBeTruthy();
     }
   });
@@ -50,101 +44,108 @@ describe('Questions data', () => {
     expect(textQuestions.length).toBeGreaterThan(0);
   });
 
-  it('includes a multi-select question', () => {
+  it('includes multi-select questions', () => {
     const multiQuestions = QUESTIONS.filter((q) => q.type === 'multi');
     expect(multiQuestions.length).toBeGreaterThan(0);
   });
 });
 
-describe('Rule-based fallback recommendation', () => {
-  it('recommends Essential for under_50 budget', () => {
+describe('Scoring engine', () => {
+  it('recommends Essential for minimal budget small team', () => {
     const answers: UserAnswers = {
-      situation: 'first_time',
-      coverage: 'just_me',
-      health: 'great',
+      teamSize: '1-10',
+      budget: 'minimal',
       priorities: [],
-      budget: 'under_50',
+      dealbreakers: [],
       extras: '',
     };
-    const result = getRuleBased(answers);
-    expect(result.recommendedPlanId).toBe('essential');
-    expect(result.matchScore).toBeGreaterThan(70);
+    const ranked = scoreAndRankPlans(answers);
+    expect(ranked[0].plan.id).toBe('essential');
+    expect(ranked[0].matchPercentage).toBeGreaterThan(70);
   });
 
-  it('recommends Elite for over_200 budget', () => {
+  it('recommends Growth for moderate budget', () => {
     const answers: UserAnswers = {
-      situation: 'new_job',
-      coverage: 'just_me',
-      health: 'good',
-      priorities: ['travel', 'wellness'],
-      budget: 'over_200',
+      teamSize: '11-50',
+      budget: 'moderate',
+      priorities: ['mental-health', 'dental-optical'],
+      dealbreakers: [],
       extras: '',
     };
-    const result = getRuleBased(answers);
-    expect(result.recommendedPlanId).toBe('elite');
+    const ranked = scoreAndRankPlans(answers);
+    expect(ranked[0].plan.id).toBe('growth');
   });
 
-  it('recommends Standard for 50_100 budget', () => {
+  it('recommends Premium for competitive budget with priorities', () => {
     const answers: UserAnswers = {
-      situation: 'switching',
-      coverage: 'me_partner',
-      health: 'good',
-      priorities: ['dental', 'optical'],
-      budget: '50_100',
+      teamSize: '51-200',
+      budget: 'competitive',
+      priorities: ['mental-health', 'international'],
+      dealbreakers: ['mental-health'],
       extras: '',
     };
-    const result = getRuleBased(answers);
-    expect(result.recommendedPlanId).toBe('standard');
+    const ranked = scoreAndRankPlans(answers);
+    expect(ranked[0].plan.id).toBe('premium');
   });
 
-  it('recommends Premium for 100_200 budget', () => {
+  it('penalizes plans that violate dealbreakers', () => {
     const answers: UserAnswers = {
-      situation: 'family_change',
-      coverage: 'me_family',
-      health: 'good',
-      priorities: ['family_care', 'mental_health'],
-      budget: '100_200',
-      extras: 'We have two young children',
+      teamSize: '11-50',
+      budget: 'minimal',
+      priorities: ['dental-optical'],
+      dealbreakers: ['dental-optical'],
+      extras: '',
     };
-    const result = getRuleBased(answers);
-    expect(result.recommendedPlanId).toBe('premium');
+    const ranked = scoreAndRankPlans(answers);
+    // Essential has dental: 0.0, so it should be penalized despite budget fit
+    expect(ranked[0].plan.id).not.toBe('essential');
   });
 
-  it('always returns a valid plan ID', () => {
-    const validIds = PLANS.map((p) => p.id);
-    const testCases: UserAnswers[] = [
-      { situation: 'new_job', coverage: 'just_me', health: 'great', priorities: [], budget: 'under_50', extras: '' },
-      { situation: 'self_employed', coverage: 'me_partner', health: 'good', priorities: ['dental'], budget: '50_100', extras: '' },
-      { situation: 'switching', coverage: 'me_family', health: 'managing', priorities: ['mental_health', 'physio'], budget: '100_200', extras: '' },
-      { situation: 'first_time', coverage: 'just_me', health: 'complex', priorities: ['fast_access', 'travel'], budget: 'over_200', extras: 'I travel frequently' },
-    ];
-
-    for (const answers of testCases) {
-      const result = getRuleBased(answers);
-      expect(validIds).toContain(result.recommendedPlanId);
-      expect(result.headline).toBeTruthy();
-      expect(result.reasoning).toBeTruthy();
-      expect(result.keyBenefits.length).toBeGreaterThan(0);
-      expect(result.matchScore).toBeGreaterThanOrEqual(70);
-      expect(result.matchScore).toBeLessThanOrEqual(100);
+  it('returns 4 plans with descending match percentages', () => {
+    const answers: UserAnswers = {
+      teamSize: '11-50',
+      budget: 'moderate',
+      priorities: ['mental-health'],
+      dealbreakers: [],
+      extras: '',
+    };
+    const ranked = scoreAndRankPlans(answers);
+    expect(ranked).toHaveLength(4);
+    for (let i = 1; i < ranked.length; i++) {
+      expect(ranked[i].matchPercentage).toBeLessThan(ranked[i - 1].matchPercentage);
     }
   });
 
-  it('boosts match score for complex health needs', () => {
-    const baseAnswers: UserAnswers = {
-      situation: 'switching',
-      coverage: 'just_me',
-      health: 'great',
-      priorities: [],
-      budget: '50_100',
+  it('generates reasons and warnings', () => {
+    const answers: UserAnswers = {
+      teamSize: '11-50',
+      budget: 'moderate',
+      priorities: ['mental-health', 'international'],
+      dealbreakers: ['international'],
       extras: '',
     };
-    const complexAnswers: UserAnswers = {
-      ...baseAnswers,
-      health: 'complex',
+    const ranked = scoreAndRankPlans(answers);
+    expect(ranked[0].reasons.length).toBeGreaterThan(0);
+    // Essential should warn about missing international (dealbreaker forces dimension to 1.0)
+    const essential = ranked.find((r) => r.plan.id === 'essential');
+    expect(essential?.warnings.length).toBeGreaterThan(0);
+  });
+});
+
+describe('Rule-based explanation', () => {
+  it('generates a complete explanation', () => {
+    const answers: UserAnswers = {
+      teamSize: '11-50',
+      budget: 'moderate',
+      priorities: ['mental-health'],
+      dealbreakers: [],
+      extras: '',
     };
-    const baseResult = getRuleBased(baseAnswers);
-    const complexResult = getRuleBased(complexAnswers);
-    expect(complexResult.matchScore).toBeGreaterThanOrEqual(baseResult.matchScore);
+    const ranked = scoreAndRankPlans(answers);
+    const explanation = getRuleBasedExplanation(answers, ranked);
+    expect(explanation.summary).toBeTruthy();
+    expect(explanation.topPickHeadline).toBeTruthy();
+    expect(explanation.topPickReasoning).toBeTruthy();
+    expect(explanation.savingsTip).toBeTruthy();
   });
 });

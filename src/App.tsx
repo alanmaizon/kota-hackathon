@@ -3,39 +3,46 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { Quiz } from './components/Quiz';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ResultsView } from './components/ResultsView';
-import { getAIRecommendation, getRuleBased } from './services/ai';
-import type { AppScreen, AIRecommendation, UserAnswers } from './types';
+import { scoreAndRankPlans, getAIExplanation, getRuleBasedExplanation } from './services/ai';
+import type { AppScreen, ScoredPlan, AIExplanation, UserAnswers } from './types';
 
 function App() {
   const [screen, setScreen] = useState<AppScreen>('welcome');
-  const [recommendation, setRecommendation] = useState<AIRecommendation | null>(null);
+  const [scoredPlans, setScoredPlans] = useState<ScoredPlan[]>([]);
+  const [explanation, setExplanation] = useState<AIExplanation | null>(null);
 
   async function handleQuizComplete(answers: UserAnswers) {
     setScreen('loading');
 
+    // Step 1: Run deterministic scoring engine (instant)
+    const ranked = scoreAndRankPlans(answers);
+    setScoredPlans(ranked);
+
+    // Step 2: Try LLM explanation, fall back to rule-based
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined;
 
     try {
-      let result: AIRecommendation;
+      let result: AIExplanation;
       if (apiKey && apiKey.trim() && apiKey !== 'your-openai-api-key-here') {
-        result = await getAIRecommendation(answers, apiKey);
+        result = await getAIExplanation(answers, ranked, apiKey);
       } else {
-        // Graceful fallback: use rule-based matching when no API key is provided
-        await new Promise((resolve) => setTimeout(resolve, 2800)); // simulate thinking
-        result = getRuleBased(answers);
+        // Simulate thinking time for rule-based fallback
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+        result = getRuleBasedExplanation(answers, ranked);
       }
-      setRecommendation(result);
+      setExplanation(result);
       setScreen('results');
     } catch {
-      // If AI call fails, fall back to rule-based
+      // If LLM fails, fall back to rule-based explanation
       await new Promise((resolve) => setTimeout(resolve, 500));
-      setRecommendation(getRuleBased(answers));
+      setExplanation(getRuleBasedExplanation(answers, ranked));
       setScreen('results');
     }
   }
 
   function handleRestart() {
-    setRecommendation(null);
+    setScoredPlans([]);
+    setExplanation(null);
     setScreen('welcome');
   }
 
@@ -44,8 +51,12 @@ function App() {
       {screen === 'welcome' && <WelcomeScreen onStart={() => setScreen('quiz')} />}
       {screen === 'quiz' && <Quiz onComplete={handleQuizComplete} />}
       {screen === 'loading' && <LoadingScreen />}
-      {screen === 'results' && recommendation && (
-        <ResultsView recommendation={recommendation} onRestart={handleRestart} />
+      {screen === 'results' && explanation && (
+        <ResultsView
+          scoredPlans={scoredPlans}
+          explanation={explanation}
+          onRestart={handleRestart}
+        />
       )}
     </>
   );

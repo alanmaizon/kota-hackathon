@@ -1,22 +1,44 @@
+export interface PlanFeature {
+  name: string;
+  included: boolean;
+  detail?: string;
+  highlight?: boolean;
+}
+
 export interface Plan {
   id: string;
   name: string;
+  tier: 'starter' | 'growth' | 'premium' | 'enterprise';
   tagline: string;
-  monthlyPrice: number;
+  monthlyPrice: { min: number; max: number };
+  annualSavings: number;
+  features: PlanFeature[];
+  coverageHighlights: string[];
+  bestFor: string;
   color: string;
-  accentColor: string;
   icon: string;
-  features: string[];
-  bestFor: string[];
-  limitations: string[];
+  weights: {
+    budgetSensitivity: number;
+    comprehensiveness: number;
+    mentalHealth: number;
+    dental: number;
+    optical: number;
+    international: number;
+    familyCoverage: number;
+    wellbeing: number;
+    speedOfAccess: number;
+    startupFriendly: number;
+    scalability: number;
+  };
 }
 
-export type QuestionType = 'single' | 'multi' | 'text' | 'range';
+export type QuestionType = 'single' | 'multi' | 'text';
 
 export interface QuestionOption {
   value: string;
   label: string;
   emoji: string;
+  desc?: string;
 }
 
 export interface Question {
@@ -25,21 +47,26 @@ export interface Question {
   subtext?: string;
   type: QuestionType;
   options?: QuestionOption[];
-  min?: number;
-  max?: number;
-  step?: number;
-  unit?: string;
   placeholder?: string;
+  maxSelections?: number;
+  field: string;
 }
 
-export type UserAnswers = Record<string, string | string[] | number>;
+export type UserAnswers = Record<string, string | string[]>;
 
-export interface AIRecommendation {
-  recommendedPlanId: string;
-  matchScore: number;
-  headline: string;
-  reasoning: string;
-  keyBenefits: string[];
+export interface ScoredPlan {
+  plan: Plan;
+  score: number;
+  matchPercentage: number;
+  reasons: string[];
+  warnings: string[];
+  personalizedInsight: string;
+}
+
+export interface AIExplanation {
+  summary: string;
+  topPickHeadline: string;
+  topPickReasoning: string;
   savingsTip?: string;
 }
 
