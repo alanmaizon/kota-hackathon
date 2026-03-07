@@ -138,9 +138,9 @@ function generateWarnings(plan: Plan, profile: Record<string, number>): string[]
   if (profile.dental > 0.7 && plan.weights.dental < 0.3)
     warnings.push('Limited dental coverage on this tier');
   if (profile.international > 0.7 && plan.weights.international < 0.3)
-    warnings.push('No international coverage \u2014 consider upgrading if hiring abroad');
+    warnings.push('No international coverage. Consider upgrading if hiring abroad');
   if (profile.mentalHealth > 0.8 && plan.weights.mentalHealth < 0.5)
-    warnings.push('Limited mental health sessions \u2014 may not meet your team\'s needs');
+    warnings.push('Limited mental health sessions, may not meet your team\'s needs');
   if (profile.scalability > 0.8 && plan.weights.scalability < 0.5)
     warnings.push('May require plan changes as your team grows significantly');
   return warnings;
@@ -265,7 +265,7 @@ export async function chatWithKotaAI(
       (sp) =>
         `${sp.plan.name} (${sp.matchPercentage}% match, ${sp.plan.price}, ${sp.plan.teamSize})\n` +
         `  Features: ${sp.plan.features.filter((f) => f.included).map((f) => f.detail ? `${f.name}: ${f.detail}` : f.name).join(', ')}\n` +
-        `  Not included: ${sp.plan.features.filter((f) => !f.included).map((f) => f.name).join(', ') || 'Nothing — full coverage'}\n` +
+        `  Not included: ${sp.plan.features.filter((f) => !f.included).map((f) => f.name).join(', ') || 'Nothing, full coverage'}\n` +
         `  Best for: ${sp.plan.bestFor}\n` +
         `  Insight: ${sp.personalizedInsight}`,
     )
@@ -279,13 +279,15 @@ ${planContext}
 
 RULES:
 - Answer based ONLY on the plan data above. Do not invent features or pricing.
-- Be precise and specific — reference actual plan names, features, and prices.
+- Be precise and specific. Reference actual plan names, features, and prices.
 - Keep answers concise (2-4 sentences). A comparison may be slightly longer but stay focused.
 - Be warm and conversational, not salesy. Never pressure the user.
 - If you don't know something or the plan data doesn't cover it, say so honestly and suggest booking a demo at https://partner.kota.io/kota-demo rather than guessing.
 - Kota operates in Ireland and the UK only. Do not claim coverage in other countries.
 - Kota covers employee benefits only. Do not claim coverage for pets, vehicles, or other non-employee categories.
-- Kota is regulated by the Central Bank of Ireland.`;
+- Kota is regulated by the Central Bank of Ireland.
+- NEVER use em dashes (—). Use commas, periods, or "to" instead.
+- NEVER use markdown bold (**text**). Just write plain text.`;
 
   const messages: { role: 'user' | 'assistant'; content: string }[] = [];
 

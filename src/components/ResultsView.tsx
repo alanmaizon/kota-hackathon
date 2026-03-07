@@ -126,7 +126,7 @@ export function ResultsView({ scoredPlans, explanation, onRestart }: ResultsView
                           ) : feature ? (
                             <span className="text-sm" style={{ color: 'var(--cloud-border)' }}>&#10005;</span>
                           ) : (
-                            <span className="text-xs" style={{ color: 'var(--cloud-border)' }}>&mdash;</span>
+                            <span className="text-xs" style={{ color: 'var(--cloud-border)' }}>-</span>
                           )}
                         </td>
                       );
@@ -485,7 +485,7 @@ export function ResultsView({ scoredPlans, explanation, onRestart }: ResultsView
 
         {/* Disclaimer */}
         <p className="text-center text-xs mt-6 leading-relaxed" style={{ color: 'var(--cloud-muted)', opacity: 0.7 }}>
-          Kota is regulated by the Central Bank of Ireland. Plan details are illustrative &mdash; actual pricing depends on team size. Book a demo for a formal quote.
+          Kota is regulated by the Central Bank of Ireland. Plan details are illustrative. Actual pricing depends on team size. Book a demo for a formal quote.
         </p>
       </div>
     </div>

@@ -61,7 +61,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
               style={{ color: 'var(--cloud-muted)' }}
             >
               Stop guessing. Answer a few quick questions about your team and priorities,
-              and we&rsquo;ll match you with the plan that actually fits &mdash; with clear reasoning
+              and we&rsquo;ll match you with the plan that actually fits, with clear reasoning
               for every recommendation.
             </motion.p>
 
