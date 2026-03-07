@@ -14,21 +14,31 @@ const benefits = [
 export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--cloud-bg)' }}>
-      {/* Hero section with background image */}
-      <div
-        className="relative overflow-hidden"
-        style={{
-          backgroundImage: 'url(/hero-background.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        {/* Subtle overlay for text readability */}
-        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(247, 246, 243, 0.55)' }} />
+      {/* ─── Hero Section ──────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden">
+        {/* hero-background: absolute base layer */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: 'url(/hero-background.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            zIndex: 0,
+          }}
+        />
+        {/* Overlay for text readability */}
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: 'rgba(247, 246, 243, 0.5)', zIndex: 0 }}
+        />
 
-        <div className="relative max-w-6xl mx-auto px-6 py-16 md:py-24">
-          <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
-            {/* Left side: headline + CTA */}
+        {/* hero-content container */}
+        <div
+          className="relative hero-container"
+          style={{ zIndex: 1 }}
+        >
+          <div className="hero-grid items-center">
+            {/* ─── Left column: text + CTA ─── */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -39,12 +49,13 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.4 }}
-                className="inline-flex items-center gap-2 text-sm px-4 py-1.5 rounded-full mb-6"
+                className="inline-flex items-center gap-2 text-sm px-4 py-1.5 rounded-full"
                 style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.85)',
                   color: 'var(--cloud-accent)',
                   border: '1px solid rgba(106, 92, 255, 0.2)',
                   backdropFilter: 'blur(8px)',
+                  marginBottom: 28,
                 }}
               >
                 <span>&#10024;</span>
@@ -56,8 +67,8 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15, duration: 0.5 }}
-                className="text-4xl sm:text-5xl font-semibold mb-5 leading-tight tracking-tight"
-                style={{ color: 'var(--cloud-text)' }}
+                className="text-4xl sm:text-5xl font-semibold leading-tight tracking-tight"
+                style={{ color: 'var(--cloud-text)', marginBottom: 16 }}
               >
                 Find the right health plan{' '}
                 <span style={{ color: 'var(--cloud-accent)' }}>
@@ -65,20 +76,20 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                 </span>
               </motion.h1>
 
-              {/* Subheadline */}
+              {/* Description — 16px below headline */}
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25, duration: 0.5 }}
-                className="text-lg mb-8 leading-relaxed"
-                style={{ color: 'var(--cloud-muted)' }}
+                className="text-lg leading-relaxed"
+                style={{ color: 'var(--cloud-muted)', marginBottom: 28 }}
               >
                 Stop guessing. Answer a few quick questions about your team and priorities,
                 and we&rsquo;ll match you with the plan that actually fits &mdash; with clear reasoning
                 for every recommendation.
               </motion.p>
 
-              {/* Primary CTA */}
+              {/* Primary CTA — 28px below description */}
               <motion.button
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -86,7 +97,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={onStart}
-                className="font-medium text-lg px-10 py-4 rounded-2xl text-white shadow-lg transition-all duration-200 cursor-pointer inline-flex items-center gap-2"
+                className="font-medium text-lg px-10 py-4 rounded-2xl text-white transition-all duration-200 cursor-pointer inline-flex items-center gap-2"
                 style={{
                   backgroundColor: 'var(--cloud-accent)',
                   boxShadow: '0 8px 24px rgba(106, 92, 255, 0.25)',
@@ -103,38 +114,41 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="text-sm mt-4 flex items-center gap-2"
-                style={{ color: 'var(--cloud-muted)' }}
+                className="text-sm flex items-center gap-2"
+                style={{ color: 'var(--cloud-muted)', marginTop: 16 }}
               >
                 <span style={{ color: '#00b894' }}>&#10003;</span>
                 Takes about 60 seconds &middot; No signup required
               </motion.p>
             </motion.div>
 
-            {/* Right side: hero picture */}
+            {/* ─── Right column: hero-picture-card ─── */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
               className="flex items-center justify-center"
             >
-              <img
-                src="/hero-picture.png"
-                alt="Kota Health Plan Picker"
-                className="w-full max-w-lg h-auto object-contain drop-shadow-lg"
-              />
+              <div className="hero-picture-card">
+                <img
+                  src="/hero-picture.png"
+                  alt="Kota Health Plan Picker illustration"
+                  className="hero-picture-img"
+                />
+              </div>
             </motion.div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Benefit cards */}
-      <div style={{ backgroundColor: 'var(--cloud-card)' }}>
+      {/* ─── Benefit cards (overlapping hero via negative margin) ──────── */}
+      <div style={{ backgroundColor: 'var(--cloud-card)', marginTop: -48 }}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="max-w-6xl mx-auto px-6 py-16"
+          className="mx-auto px-6"
+          style={{ maxWidth: 1200, paddingTop: 64, paddingBottom: 64 }}
         >
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {benefits.map((b, i) => (
@@ -165,7 +179,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
         </motion.div>
       </div>
 
-      {/* Trusted by */}
+      {/* ─── Trusted by ───────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
