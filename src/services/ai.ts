@@ -255,10 +255,9 @@ export async function chatWithKotaAI(
   chatHistory: { role: 'user' | 'ai'; text: string }[],
   onToken?: (token: string) => void,
 ): Promise<string> {
+  // In production (Vercel), the edge function at /api/anthropic handles auth.
+  // In dev, the Vite proxy forwards to Anthropic directly, so we need the key.
   const apiKey = (import.meta.env.VITE_ANTHROPIC_API_KEY as string) || '';
-  if (!apiKey || apiKey === 'your-anthropic-api-key-here') {
-    throw new Error('No API key configured');
-  }
 
   const planContext = scoredPlans
     .map(
@@ -306,8 +305,8 @@ RULES:
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
+      ...(apiKey ? { 'x-api-key': apiKey } : {}),
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
