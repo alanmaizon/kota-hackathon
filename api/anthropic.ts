@@ -1,0 +1,39 @@
+// Vercel serverless function — proxies requests to Anthropic API
+// so the frontend doesn't need CORS headers or expose the API key.
+
+export const config = { runtime: 'edge' };
+
+export default async function handler(req: Request) {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204 });
+  }
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: 'API key not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const body = await req.text();
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body,
+  });
+
+  // Stream the response through
+  return new Response(response.body, {
+    status: response.status,
+    headers: {
+      'Content-Type': response.headers.get('Content-Type') || 'application/json',
+      'Cache-Control': 'no-cache',
+    },
+  });
+}

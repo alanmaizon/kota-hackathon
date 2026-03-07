@@ -42,7 +42,7 @@ flowchart TD
     end
 
     subgraph Services
-        SE[Scoring Engine\nai.ts] --> |weights + profile| RV
+        SE[Scoring Engine ai.ts] --> |weights + profile| RV
         Chat --> |SSE stream| Proxy[Vite Proxy]
         Proxy --> API[Claude API Haiku 4.5]
     end

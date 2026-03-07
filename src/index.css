@@ -1,32 +1,37 @@
 @import "tailwindcss";
 
-/* ─── Neue Faktum Font ──────────────────────────────────────────────────────── *
- * When you have valid .woff2 files, place them in /public/fonts/ and
- * uncomment the @font-face blocks below. Until then, Inter (loaded via
- * Google Fonts in index.html) serves as a close geometric-sans fallback.
- *
- * @font-face {
- *   font-family: 'Neue Faktum';
- *   src: url('/fonts/NeueFaktum-Regular.woff2') format('woff2');
- *   font-weight: 400;
- *   font-style: normal;
- *   font-display: swap;
- * }
- * @font-face {
- *   font-family: 'Neue Faktum';
- *   src: url('/fonts/NeueFaktum-Medium.woff2') format('woff2');
- *   font-weight: 500;
- *   font-style: normal;
- *   font-display: swap;
- * }
- * @font-face {
- *   font-family: 'Neue Faktum';
- *   src: url('/fonts/NeueFaktum-SemiBold.woff2') format('woff2');
- *   font-weight: 600;
- *   font-style: normal;
- *   font-display: swap;
- * }
- * ──────────────────────────────────────────────────────────────────────────── */
+/* ─── Neue Faktum Font ──────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Neue Faktum';
+  src: url('/fonts/NeueFaktumTest-Regular-BF670dd13623fde.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Neue Faktum';
+  src: url('/fonts/NeueFaktumTest-Medium-BF670dd1362766a.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Neue Faktum';
+  src: url('/fonts/NeueFaktumTest-SemiBold-BF670dd13627e0e.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Neue Faktum';
+  src: url('/fonts/NeueFaktumTest-Bold-BF670dd136200bd.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────── */
 
 /* ─── Cloud Dancer Palette ──────────────────────────────────────────────────── */
 

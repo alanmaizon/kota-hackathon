@@ -68,7 +68,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
             >
               <img
                 src="/hero-picture.png"
-                alt="Kota Health Plan Picker illustration"
+                alt="Kota AI Agent"
                 className="mx-auto"
                 style={{ maxWidth: 400, maxHeight: 220, objectFit: 'contain', border: '3px solid #000', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)' }}
               />
