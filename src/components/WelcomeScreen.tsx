@@ -4,12 +4,6 @@ interface WelcomeScreenProps {
   onStart: () => void;
 }
 
-const benefits = [
-  { icon: '\u2728', title: 'AI-powered matching', desc: 'Our engine analyses 11 dimensions to find your perfect fit' },
-  { icon: '\u26A1', title: 'Takes about 60 seconds', desc: 'A few thoughtful questions replace endless comparison spreadsheets' },
-  { icon: '\uD83C\uDFAF', title: 'Personalised insights', desc: 'Understand why a plan suits you, not just what it covers' },
-  { icon: '\uD83D\uDC65', title: 'Built for teams', desc: 'Recommendations tailored to your team size, stage, and goals' },
-];
 
 export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
   return (
@@ -75,7 +69,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
               <img
                 src="/hero-picture.png"
                 alt="Kota Health Plan Picker illustration"
-                className="mx-auto rounded-xl"
+                className="mx-auto"
                 style={{ maxWidth: 400, maxHeight: 220, objectFit: 'contain', border: '3px solid #000', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)' }}
               />
             </motion.div>
@@ -115,44 +109,6 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
         </div>
       </section>
 
-      {/* ─── Benefit cards ──────────────────────────────────────────────── */}
-      <div style={{ backgroundColor: 'var(--cloud-card)' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mx-auto px-6"
-          style={{ maxWidth: 1200, paddingTop: 64, paddingBottom: 64 }}
-        >
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {benefits.map((b, i) => (
-              <motion.div
-                key={b.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.5 + i * 0.1 }}
-                className="rounded-2xl p-5 flex gap-4 transition-colors"
-                style={{
-                  backgroundColor: 'var(--cloud-bg)',
-                  border: '1px solid var(--cloud-border)',
-                }}
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: 'rgba(106, 92, 255, 0.08)' }}
-                >
-                  <span className="text-lg">{b.icon}</span>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold" style={{ color: 'var(--cloud-text)' }}>{b.title}</h3>
-                  <p className="text-sm mt-0.5" style={{ color: 'var(--cloud-muted)' }}>{b.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
       {/* ─── Trusted by ───────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -170,6 +126,15 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
           ))}
         </div>
       </motion.div>
+
+      {/* ─── Footer watermark ──────────────────────────────────────────── */}
+      <div className="py-6 text-center" style={{ backgroundColor: 'var(--cloud-bg)' }}>
+        <div className="flex items-center justify-center gap-2" style={{ opacity: 0.45 }}>
+          <span className="text-xs" style={{ color: 'var(--cloud-muted)' }}>Built for</span>
+          <img src="/logo.png" alt="Kota" style={{ height: 18 }} />
+          <span className="text-xs" style={{ color: 'var(--cloud-muted)' }}>Hackathon</span>
+        </div>
+      </div>
     </div>
   );
 }

@@ -490,6 +490,13 @@ export function ResultsView({ scoredPlans, explanation, onRestart }: ResultsView
         <p className="text-center text-xs mt-6 leading-relaxed" style={{ color: 'var(--cloud-muted)', opacity: 0.7 }}>
           Kota is regulated by the Central Bank of Ireland. Plan details are illustrative. Actual pricing depends on team size. Book a demo for a formal quote.
         </p>
+
+        {/* Footer watermark */}
+        <div className="mt-8 flex items-center justify-center gap-2" style={{ opacity: 0.45 }}>
+          <span className="text-xs" style={{ color: 'var(--cloud-muted)' }}>Built for</span>
+          <img src="/logo.png" alt="Kota" style={{ height: 18 }} />
+          <span className="text-xs" style={{ color: 'var(--cloud-muted)' }}>Hackathon</span>
+        </div>
       </div>
     </div>
   );

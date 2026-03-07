@@ -1,108 +1,143 @@
-# Kota Interactive Plan Picker 🏥
+# Kota AI Agent
 
-> AI-powered health insurance plan recommendation — find your perfect Kota plan in under 2 minutes.
+> An AI-powered benefits advisor that matches teams with the right Kota plan in under 60 seconds, then answers follow-up questions via streaming chat.
 
-## What it does
+## Elevator Pitch (30s)
 
-This is an interactive, AI-driven questionnaire that guides users through 6 simple questions about their health needs, priorities, and budget — then uses OpenAI GPT-4o-mini to generate a **personalised health insurance plan recommendation** with detailed, human-readable reasoning.
+HR teams waste hours comparing benefits plans on spreadsheets. Kota AI Agent replaces that with a 6-question quiz scored across 11 dimensions, powered by a deterministic scoring engine. Once matched, users chat with a streaming AI advisor grounded in their plan data, so they never get hallucinated answers. We built a prompt evaluation grader to keep response quality high. The result: faster plan selection, higher confidence, more demo bookings.
 
-### Key features
+## How It Works
 
-- 🤖 **Real AI integration** — OpenAI GPT-4o-mini analyses user responses holistically and generates personalised recommendations and explanations
-- 🎯 **Personalised matching** — Considers situation, coverage needs, health status, priorities, budget, and free-text context
-- ✨ **Animated conversational UI** — Smooth transitions between questions using Framer Motion
-- 🔄 **Graceful fallback** — Rule-based recommendation engine works without an API key
-- 📱 **Fully responsive** — Works on mobile and desktop
-- 🎨 **Polished design** — Dark theme matching Kota's brand aesthetic
+```mermaid
+flowchart LR
+    A[User lands] --> B[6-Question Quiz]
+    B --> C[Scoring Engine\n11 dimensions]
+    C --> D[Ranked Plans\nwith % match]
+    D --> E[Streaming AI Chat\nContextual Q&A]
+    E --> F[Book a Demo\nCTA conversion]
 
-## Tech stack
+    subgraph Client-Side
+        B
+        C
+        D
+    end
 
-- **React 19** + **TypeScript** — Component-based UI
-- **Vite** — Fast dev tooling
-- **Tailwind CSS v4** — Utility-first styling
-- **Framer Motion** — Animations and transitions
-- **OpenAI SDK** — GPT-4o-mini for AI recommendations
-- **Vitest** + **Testing Library** — Unit tests
+    subgraph Claude API
+        E
+    end
 
-## Getting started
+    style A fill:#6a5cff,color:#fff
+    style F fill:#00b894,color:#fff
+```
 
-### 1. Clone and install
+## Architecture
+
+```mermaid
+flowchart TD
+    subgraph Frontend [React + Vite]
+        WS[WelcomeScreen] --> QZ[Quiz]
+        QZ --> LS[LoadingScreen]
+        LS --> RV[ResultsView]
+        RV --> Chat[Streaming Chat]
+    end
+
+    subgraph Services
+        SE[Scoring Engine\nai.ts] --> |weights + profile| RV
+        Chat --> |SSE stream| Proxy[Vite Proxy]
+        Proxy --> API[Claude API\nHaiku 4.5]
+    end
+
+    subgraph Eval [Prompt Evaluation]
+        NB[Jupyter Notebook] --> |5 test cases| Grader[LLM Grader]
+        Grader --> |scores 1-5| Report[Pass/Fail Report]
+    end
+
+    SE -.->|system prompt| Chat
+    Report -.->|refine prompt| SE
+```
+
+## Key Features
+
+- **Deterministic scoring** -- 11-dimension weighted engine runs client-side, no API needed for plan matching
+- **Streaming AI chat** -- Claude Haiku 4.5 via SSE, tokens render in real-time
+- **Prompt evaluation grader** -- 5 automated test cases score accuracy, guardrails, tone, and conciseness
+- **Guardrailed responses** -- Geography, scope, and data boundaries enforced in the system prompt
+- **Comparison view** -- Side-by-side feature matrix across all plans
+- **Fallback resilience** -- Rule-based recommendations work without an API key
+
+## Demo Script (3 min)
+
+| Time | Section | What to show |
+|------|---------|--------------|
+| 0:00 | Problem | "HR teams spend hours comparing plans on spreadsheets" |
+| 0:20 | Solution | Walk through the quiz (pick small team, moderate budget) |
+| 0:50 | Scoring | Show results page with match percentages and insights |
+| 1:10 | AI Chat | Click "How much will this cost my team?" -- show streaming |
+| 1:30 | Guardrails | Ask "Can I get coverage for my dog?" -- show graceful decline |
+| 1:50 | Eval | Switch to notebook, run `run_eval()`, show grader output |
+| 2:20 | Compare | Show plan comparison table |
+| 2:40 | Architecture | Show mermaid diagram, explain client-side scoring + API streaming |
+| 2:50 | Wrap-up | "Faster decisions, grounded answers, quality you can measure" |
+
+## Tech Stack
+
+- **React 19** + **TypeScript** -- Component UI
+- **Vite** -- Dev server with proxy for Claude API
+- **Tailwind CSS v4** -- Styling
+- **Framer Motion** -- Animations
+- **Claude Haiku 4.5** -- Streaming AI chat via Anthropic API
+- **Jupyter Notebook** -- Prompt evaluation grader
+
+## Getting Started
 
 ```bash
 git clone https://github.com/alanmaizon/kota-hackathon.git
 cd kota-hackathon
 npm install
-```
-
-### 2. Configure the API key (optional)
-
-```bash
 cp .env.example .env
-# Edit .env and add your OpenAI API key
-```
-
-> **Note:** The app works without an API key using rule-based recommendations as a fallback. With a key, you get fully personalised AI-generated explanations.
-
-### 3. Run the dev server
-
-```bash
+# Add your Anthropic API key to .env
 npm run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173)
 
-### 4. Run tests
+## The Plans
 
-```bash
-npm test
-```
+| Plan | Price | Team Size | Best For |
+|------|-------|-----------|----------|
+| Startup | €/£9/employee/mo | 1-30 | Small teams starting with benefits |
+| Scaleup | €/£6/employee/mo | 31-200 | Growing companies needing efficient processes |
+| Growth | Talk to our team | 201+ | Competitive companies with full expert access |
 
-### 5. Build for production
-
-```bash
-npm run build
-```
-
-## The insurance plans
-
-| Plan | Price | Best for |
-|------|-------|----------|
-| 🌱 Essential | £35/mo | Healthy young professionals, tight budgets |
-| 🛡️ Standard | £75/mo | Couples, active professionals |
-| ⭐ Premium | £140/mo | Families, mental health, fitness-focused |
-| 👑 Elite | £250/mo | Executives, frequent travellers |
-
-## AI integration details
-
-The AI integration is meaningful, not decorative:
-
-1. **System prompt engineering** — A carefully crafted system prompt gives the AI full context about all four Kota plans, their features, pricing, and best-fit profiles
-2. **Structured output** — Uses `response_format: { type: 'json_object' }` to get reliable structured responses
-3. **Holistic analysis** — The AI considers all 6 dimensions of user input simultaneously, including free-text context
-4. **Personalised reasoning** — GPT generates 2-3 paragraphs of warm, conversational explanation specific to the user's answers
-5. **Budget-aware** — Prompt instructs the AI to always respect budget constraints
-
-## How the questionnaire works
-
-1. **Situation** — What brings them to insurance today?
-2. **Coverage** — Who are they covering?
-3. **Health** — Their current health status
-4. **Priorities** — Multi-select: dental, mental health, physio, optical, etc.
-5. **Budget** — Monthly budget range
-6. **Extras** — Free-text for anything else (AI-processed)
-
-## Architecture
+## Project Structure
 
 ```
 src/
-├── types/index.ts          # TypeScript interfaces
-├── data/plans.ts           # Plan data + questionnaire config
-├── services/ai.ts          # OpenAI integration + rule-based fallback
+├── data/plans.ts           # Plan data + weights
+├── services/ai.ts          # Scoring engine + streaming chat
 ├── components/
 │   ├── WelcomeScreen.tsx   # Landing page
-│   ├── Quiz.tsx            # Animated questionnaire
-│   ├── LoadingScreen.tsx   # AI thinking animation
-│   └── ResultsView.tsx     # Recommendation display
-├── App.tsx                 # State management + screen routing
-└── __tests__/              # Unit tests
+│   ├── Quiz.tsx            # 6-question flow
+│   ├── LoadingScreen.tsx   # Analysis animation
+│   └── ResultsView.tsx     # Results + chat + comparison
+├── App.tsx                 # Screen routing
+└── types/index.ts          # TypeScript interfaces
+
+notebooks/
+└── kota_ai_chat.ipynb      # Prompt testing + evaluation grader
 ```
+
+## Prompt Evaluation
+
+The notebook at `notebooks/kota_ai_chat.ipynb` includes an automated grader that:
+
+1. Runs 5 test cases (pricing, out-of-scope, comparisons, missing data, geography)
+2. Generates a fresh AI response for each
+3. Scores each response on accuracy, guardrails, tone, and conciseness (1-5)
+4. Reports pass/fail with per-criterion reasoning
+
+Run `run_eval()` to grade the current system prompt. Edit the prompt, re-run, compare scores.
+
+---
+
+Built for Kota Hackathon
