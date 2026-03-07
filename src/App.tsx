@@ -3,7 +3,7 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { Quiz } from './components/Quiz';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ResultsView } from './components/ResultsView';
-import { scoreAndRankPlans, getAIExplanation, getRuleBasedExplanation } from './services/ai';
+import { scoreAndRankPlans, getRuleBasedExplanation } from './services/ai';
 import type { AppScreen, ScoredPlan, AIExplanation, UserAnswers } from './types';
 
 function App() {
@@ -18,26 +18,11 @@ function App() {
     const ranked = scoreAndRankPlans(answers);
     setScoredPlans(ranked);
 
-    // Step 2: Try LLM explanation, fall back to rule-based
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined;
-
-    try {
-      let result: AIExplanation;
-      if (apiKey && apiKey.trim() && apiKey !== 'your-openai-api-key-here') {
-        result = await getAIExplanation(answers, ranked, apiKey);
-      } else {
-        // Simulate thinking time for rule-based fallback
-        await new Promise((resolve) => setTimeout(resolve, 2500));
-        result = getRuleBasedExplanation(answers, ranked);
-      }
-      setExplanation(result);
-      setScreen('results');
-    } catch {
-      // If LLM fails, fall back to rule-based explanation
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setExplanation(getRuleBasedExplanation(answers, ranked));
-      setScreen('results');
-    }
+    // Step 2: Generate explanation (rule-based, no API dependency)
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    const result = getRuleBasedExplanation(answers, ranked);
+    setExplanation(result);
+    setScreen('results');
   }
 
   function handleRestart() {

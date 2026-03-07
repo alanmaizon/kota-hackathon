@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { chatWithKotaAI } from '../services/ai';
 import type { ScoredPlan, AIExplanation } from '../types';
 
 interface ResultsViewProps {
@@ -13,39 +14,30 @@ export function ResultsView({ scoredPlans, explanation, onRestart }: ResultsView
   const [showChat, setShowChat] = useState(false);
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>([]);
   const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
 
   const topPlan = scoredPlans[0];
 
-  // ─── Chat handler ───────────────────────────────────────────────────────────
-  function handleChatSend(message?: string) {
+  // ─── Chat handler (AI-powered) ────────────────────────────────────────────
+  async function handleChatSend(message?: string) {
     const text = message || chatInput.trim();
-    if (!text) return;
+    if (!text || chatLoading) return;
     setChatInput('');
-    setChatMessages((prev) => [...prev, { role: 'user', text }]);
+    const updatedMessages = [...chatMessages, { role: 'user' as const, text }];
+    setChatMessages(updatedMessages);
+    setChatLoading(true);
 
-    setTimeout(() => {
-      const lower = text.toLowerCase();
-      let response = 'Great question! Based on your profile, I\'d recommend booking a demo with a Kota advisor who can give specific guidance for your team.';
-
-      if (lower.includes('cost') || lower.includes('price') || lower.includes('budget')) {
-        const p = topPlan.plan;
-        response = `Your recommended plan (${p.name}) is priced at ${p.price}. It's designed for teams of ${p.teamSize}. Book a demo for a personalised quote.`;
-      } else if (lower.includes('mental health') || lower.includes('therapy') || lower.includes('counselling')) {
-        response = `All Kota plans include access to core & flexible benefits which cover mental health support. Book a demo to learn about the specific mental health options available on the ${topPlan.plan.name} plan.`;
-      } else if (lower.includes('dental') || lower.includes('teeth')) {
-        response = `Dental coverage is available through Kota's flexible benefits. Book a demo to understand exactly what dental options are included on the ${topPlan.plan.name} plan.`;
-      } else if (lower.includes('switch') || lower.includes('upgrade') || lower.includes('change')) {
-        response = 'You can upgrade your plan at any time as your team grows. Speak with our team to understand the transition process.';
-      } else if (lower.includes('family') || lower.includes('spouse') || lower.includes('dependent')) {
-        response = 'Family coverage options are available through Kota\'s flexible benefits platform. Book a demo to learn about dependent coverage.';
-      } else if (lower.includes('set up') || lower.includes('how long') || lower.includes('start')) {
-        response = `Getting started is quick! ${topPlan.plan.tier === 'growth' ? 'Growth plans include access to a dedicated team of benefits experts for white-glove onboarding.' : topPlan.plan.tier === 'scaleup' ? 'Scaleup plans include a live onboarding webinar to get you up and running.' : 'Startup plans come with live chat support to guide you through setup.'}`;
-      } else if (lower.includes('international') || lower.includes('abroad') || lower.includes('global')) {
-        response = 'International coverage options depend on your specific plan configuration. Book a demo to discuss multi-country benefits with our team.';
-      }
-
+    try {
+      const response = await chatWithKotaAI(text, scoredPlans, chatMessages);
       setChatMessages((prev) => [...prev, { role: 'ai', text: response }]);
-    }, 600);
+    } catch {
+      setChatMessages((prev) => [
+        ...prev,
+        { role: 'ai', text: `Your recommended plan (${topPlan.plan.name}) is priced at ${topPlan.plan.price} for teams of ${topPlan.plan.teamSize}. Book a demo at https://partner.kota.io/kota-demo for a personalised quote.` },
+      ]);
+    } finally {
+      setChatLoading(false);
+    }
   }
 
   // ─── Comparison view ────────────────────────────────────────────────────────
@@ -259,6 +251,16 @@ export function ResultsView({ scoredPlans, explanation, onRestart }: ResultsView
                     </div>
                   </div>
                 ))}
+                {chatLoading && (
+                  <div className="flex justify-start">
+                    <div
+                      className="px-4 py-2.5 rounded-2xl text-sm"
+                      style={{ backgroundColor: 'var(--cloud-bg)', color: 'var(--cloud-muted)', border: '1px solid var(--cloud-border)' }}
+                    >
+                      Thinking...
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="p-4 flex gap-2" style={{ borderTop: '1px solid var(--cloud-border)' }}>
                 <input
@@ -276,7 +278,7 @@ export function ResultsView({ scoredPlans, explanation, onRestart }: ResultsView
                 />
                 <button
                   onClick={() => handleChatSend()}
-                  disabled={!chatInput.trim()}
+                  disabled={!chatInput.trim() || chatLoading}
                   className="px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all cursor-pointer disabled:opacity-40"
                   style={{ backgroundColor: 'var(--cloud-accent)' }}
                 >

@@ -1,4 +1,3 @@
-import OpenAI from 'openai';
 import { PLANS } from '../data/plans';
 import type { ScoredPlan, AIExplanation, UserAnswers, Plan } from '../types';
 
@@ -248,85 +247,81 @@ export function getSmartFollowUp(answers: Partial<UserAnswers>): string | null {
   return null;
 }
 
-// ─── LLM Explanation (enriches scoring with natural language) ────────────────
+// ─── AI Chat (contextual Q&A about recommended plans) ────────────────────────
 
-const PLAN_CATALOGUE = PLANS.map((p) => {
-  const included = p.features
-    .filter((f) => f.included)
-    .map((f) => (f.detail ? `${f.name}: ${f.detail}` : f.name))
-    .join(', ');
-  const excluded = p.features
-    .filter((f) => !f.included)
-    .map((f) => f.name)
-    .join(', ');
-  return `${p.name} (${p.price}, ${p.teamSize})\n  Includes: ${included}\n  Excludes: ${excluded || 'Nothing \u2014 full coverage'}\n  Best for: ${p.bestFor}`;
-}).join('\n\n');
+export async function chatWithKotaAI(
+  question: string,
+  scoredPlans: ScoredPlan[],
+  chatHistory: { role: 'user' | 'ai'; text: string }[],
+): Promise<string> {
+  const apiKey = (import.meta.env.VITE_ANTHROPIC_API_KEY as string) || '';
+  if (!apiKey || apiKey === 'your-anthropic-api-key-here') {
+    throw new Error('No API key configured');
+  }
 
-function buildExplainerPrompt(answers: UserAnswers, scoredPlans: ScoredPlan[]): string {
-  const top = scoredPlans[0];
-  const priorities = (answers.priorities as string[]) || [];
-  const priorityLabels: Record<string, string> = {
-    'mental-health': 'mental health support',
-    'dental-optical': 'dental & optical',
-    'international': 'international coverage',
-    'family': 'family-friendly benefits',
-    'wellness': 'wellness programmes',
-    'talent-attraction': 'talent attraction',
-    'cost-effective': 'cost-effectiveness',
-    'speed': 'quick setup',
-  };
-  const selectedPriorities = priorities.map((p) => priorityLabels[p] || p).join(', ');
-  const extras = (answers.extras as string) || '';
+  const planContext = scoredPlans
+    .map(
+      (sp) =>
+        `${sp.plan.name} (${sp.matchPercentage}% match, ${sp.plan.price}, ${sp.plan.teamSize})\n` +
+        `  Features: ${sp.plan.features.filter((f) => f.included).map((f) => f.detail ? `${f.name}: ${f.detail}` : f.name).join(', ')}\n` +
+        `  Not included: ${sp.plan.features.filter((f) => !f.included).map((f) => f.name).join(', ') || 'Nothing — full coverage'}\n` +
+        `  Best for: ${sp.plan.bestFor}\n` +
+        `  Insight: ${sp.personalizedInsight}`,
+    )
+    .join('\n\n');
 
-  return `You are a health insurance advisor for Kota (kota.io), a regulated employee benefits platform in Ireland and the UK.
+  const systemPrompt = `You are a helpful health insurance advisor for Kota (kota.io), a regulated employee benefits platform in Ireland and the UK.
 
-A user completed our plan finder. Their answers:
-- Team size: ${answers.teamSize}
-- Budget mindset: ${answers.budget}
-- Top priorities: ${selectedPriorities || 'Not specified'}
-- Must-haves: ${((answers.dealbreakers as string[]) || []).map((d) => priorityLabels[d] || d).join(', ') || 'None'}
-- Additional context: ${extras || 'None provided'}
+The user just completed our plan finder. Here are their results:
 
-Our scoring engine ranked their top plan as ${top.plan.name} at ${top.matchPercentage}% match.
-
-AVAILABLE PLANS (use ONLY these):
-${PLAN_CATALOGUE}
-
-Generate a personalised explanation. Respond with ONLY valid JSON:
-{
-  "summary": "2-3 sentences explaining WHY these plans suit THIS user. Reference their budget mindset, team size, and priorities by name. Be warm and jargon-free.",
-  "topPickHeadline": "One punchy sentence about why ${top.plan.name} fits them specifically.",
-  "topPickReasoning": "2-3 short paragraphs explaining the recommendation. Be specific about their answers. Mention trade-offs honestly. Do NOT use the word 'comprehensive' more than once.",
-  "savingsTip": "One practical tip about getting maximum value from this plan."
-}
+${planContext}
 
 RULES:
-- Only reference features that exist in the plan data above
-- Reference at least one specific user answer in every field
-- Be conversational and warm, not salesy
-- If budget is minimal, acknowledge the constraint honestly`;
-}
+- Answer based ONLY on the plan data above. Do not invent features or pricing.
+- Be precise and specific — reference actual plan names, features, and prices.
+- Keep answers concise (2-4 sentences).
+- Be warm and conversational, not salesy.
+- If you don't know something specific, suggest booking a demo at https://partner.kota.io/kota-demo rather than guessing.
+- Kota is regulated by the Central Bank of Ireland.`;
 
-export async function getAIExplanation(
-  answers: UserAnswers,
-  scoredPlans: ScoredPlan[],
-  apiKey: string,
-): Promise<AIExplanation> {
-  const client = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-  const prompt = buildExplainerPrompt(answers, scoredPlans);
+  const messages: { role: 'user' | 'assistant'; content: string }[] = [];
 
-  const response = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
-    response_format: { type: 'json_object' },
-    temperature: 0.7,
-    max_tokens: 600,
+  // Add conversation history
+  for (const msg of chatHistory) {
+    messages.push({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.text,
+    });
+  }
+
+  // Add current question
+  messages.push({ role: 'user', content: question });
+
+  const response = await fetch('/api/anthropic/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      system: systemPrompt,
+      messages,
+    }),
   });
 
-  const content = response.choices[0]?.message?.content;
-  if (!content) throw new Error('No response from AI');
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error((error as { error?: { message?: string } }).error?.message || `API error ${response.status}`);
+  }
 
-  return JSON.parse(content) as AIExplanation;
+  const data = await response.json() as { content: { type: string; text: string }[] };
+  const text = data.content?.[0]?.text;
+  if (!text) throw new Error('No response from AI');
+
+  return text;
 }
 
 export function getRuleBasedExplanation(
