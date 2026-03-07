@@ -45,12 +45,9 @@
 }
 
 /* ─── Global Styles ─────────────────────────────────────────────────────────── */
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* Note: Tailwind v4's preflight already resets box-sizing, margin, and padding
+   via @layer base. Adding an unlayered * reset would override all Tailwind
+   spacing utilities (py-*, px-*, mb-*, etc.) due to cascade layer priority. */
 
 body {
   min-height: 100vh;
