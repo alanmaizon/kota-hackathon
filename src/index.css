@@ -1,38 +1,50 @@
 @import "tailwindcss";
 
-/* ─── Neue Faktum Font ──────────────────────────────────────────────────────── */
+/* ─── Neue Faktum Font ──────────────────────────────────────────────────────── *
+ * When you have valid .woff2 files, place them in /public/fonts/ and
+ * uncomment the @font-face blocks below. Until then, Inter (loaded via
+ * Google Fonts in index.html) serves as a close geometric-sans fallback.
+ *
+ * @font-face {
+ *   font-family: 'Neue Faktum';
+ *   src: url('/fonts/NeueFaktum-Regular.woff2') format('woff2');
+ *   font-weight: 400;
+ *   font-style: normal;
+ *   font-display: swap;
+ * }
+ * @font-face {
+ *   font-family: 'Neue Faktum';
+ *   src: url('/fonts/NeueFaktum-Medium.woff2') format('woff2');
+ *   font-weight: 500;
+ *   font-style: normal;
+ *   font-display: swap;
+ * }
+ * @font-face {
+ *   font-family: 'Neue Faktum';
+ *   src: url('/fonts/NeueFaktum-SemiBold.woff2') format('woff2');
+ *   font-weight: 600;
+ *   font-style: normal;
+ *   font-display: swap;
+ * }
+ * ──────────────────────────────────────────────────────────────────────────── */
 
-@font-face {
-  font-family: 'Neue Faktum';
-  src: url('/fonts/NeueFaktum-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Neue Faktum';
-  src: url('/fonts/NeueFaktum-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Neue Faktum';
-  src: url('/fonts/NeueFaktum-SemiBold.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ─── Global Styles ─────────────────────────────────────────────────────────── */
+/* ─── Cloud Dancer Palette ──────────────────────────────────────────────────── */
 
 :root {
-  font-family: 'Neue Faktum', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --cloud-bg: #f7f6f3;
+  --cloud-card: #ffffff;
+  --cloud-border: #e7e4de;
+  --cloud-text: #1f1f1f;
+  --cloud-muted: #6b6b6b;
+  --cloud-accent: #6a5cff;
+  --cloud-accent-hover: #5a4de6;
+
+  font-family: 'Neue Faktum', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ─── Global Styles ─────────────────────────────────────────────────────────── */
 
 * {
   box-sizing: border-box;
@@ -42,8 +54,9 @@
 
 body {
   min-height: 100vh;
-  background-color: #0f172a;
-  font-family: 'Neue Faktum', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--cloud-bg);
+  color: var(--cloud-text);
+  font-family: 'Neue Faktum', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 #root {
@@ -54,6 +67,7 @@ body {
 
 h1, h2, h3 {
   font-weight: 600;
+  color: var(--cloud-text);
 }
 
 button, label {

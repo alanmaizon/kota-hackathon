@@ -9,7 +9,7 @@ export function LoadingScreen() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ backgroundColor: 'var(--cloud-bg)' }}>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -18,23 +18,31 @@ export function LoadingScreen() {
         {/* Pulsing orb */}
         <div className="relative w-24 h-24 mx-auto mb-8">
           <motion.div
-            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute inset-0 bg-blue-500 rounded-full blur-xl"
+            className="absolute inset-0 rounded-full blur-xl"
+            style={{ backgroundColor: 'var(--cloud-accent)' }}
           />
-          <div className="relative w-full h-full bg-blue-500/20 border border-blue-500/50 rounded-full flex items-center justify-center">
+          <div
+            className="relative w-full h-full rounded-full flex items-center justify-center"
+            style={{
+              backgroundColor: 'rgba(106, 92, 255, 0.08)',
+              border: '1px solid rgba(106, 92, 255, 0.2)',
+            }}
+          >
             <span className="text-3xl">&#10024;</span>
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-white mb-2">Analysing your responses...</h2>
-        <p className="text-slate-400 mb-8">Our AI is scoring plans across 11 dimensions to find your best match</p>
+        <h2 className="text-2xl font-semibold mb-2" style={{ color: 'var(--cloud-text)' }}>Analysing your responses...</h2>
+        <p className="mb-8" style={{ color: 'var(--cloud-muted)' }}>Our AI is scoring plans across 11 dimensions to find your best match</p>
 
         {/* Progress bar */}
         <div className="max-w-xs mx-auto mb-8">
-          <motion.div className="h-2 bg-white/10 rounded-full overflow-hidden">
+          <motion.div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--cloud-border)' }}>
             <motion.div
-              className="h-full bg-blue-500 rounded-full"
+              className="h-full rounded-full"
+              style={{ backgroundColor: 'var(--cloud-accent)' }}
               initial={{ width: '0%' }}
               animate={{ width: '100%' }}
               transition={{ duration: 2.4, ease: 'easeInOut' }}
@@ -56,11 +64,12 @@ export function LoadingScreen() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: i * 0.5 + 0.3 }}
-                className="text-blue-400 text-sm shrink-0"
+                className="text-sm shrink-0"
+                style={{ color: '#00b894' }}
               >
                 &#10003;
               </motion.span>
-              <span className="text-slate-300 text-sm">{step}</span>
+              <span className="text-sm" style={{ color: 'var(--cloud-muted)' }}>{step}</span>
             </motion.div>
           ))}
         </div>

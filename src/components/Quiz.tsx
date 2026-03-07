@@ -34,7 +34,6 @@ export function Quiz({ onComplete }: QuizProps) {
       const tip = getSmartFollowUp(newAnswers);
       setSmartTip(tip);
 
-      // Auto-advance after short delay
       setTimeout(() => {
         if (currentIndex < QUESTIONS.length - 1) {
           setDirection(1);
@@ -95,11 +94,12 @@ export function Quiz({ onComplete }: QuizProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--cloud-bg)' }}>
       {/* Progress bar */}
-      <div className="w-full h-1 bg-white/10">
+      <div className="w-full h-1" style={{ backgroundColor: 'var(--cloud-border)' }}>
         <motion.div
-          className="h-full bg-blue-500"
+          className="h-full"
+          style={{ backgroundColor: 'var(--cloud-accent)' }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.4 }}
         />
@@ -110,17 +110,18 @@ export function Quiz({ onComplete }: QuizProps) {
         <button
           onClick={goBack}
           disabled={currentIndex === 0}
-          className="text-slate-400 hover:text-white transition-colors disabled:opacity-0 cursor-pointer flex items-center gap-1"
+          className="transition-colors disabled:opacity-0 cursor-pointer flex items-center gap-1 hover:opacity-70"
+          style={{ color: 'var(--cloud-muted)' }}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M11 7H3M6 4L3 7l3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
           </svg>
           Back
         </button>
-        <span className="text-slate-400 text-sm">
+        <span className="text-sm" style={{ color: 'var(--cloud-muted)' }}>
           Step {currentIndex + 1} of {QUESTIONS.length}
         </span>
-        <span className="text-slate-500 text-sm w-16 text-right">
+        <span className="text-sm w-16 text-right" style={{ color: 'var(--cloud-muted)', opacity: 0.6 }}>
           {Math.round(progress)}%
         </span>
       </div>
@@ -139,14 +140,14 @@ export function Quiz({ onComplete }: QuizProps) {
             className="w-full max-w-2xl"
           >
             {/* Question */}
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+            <h2 className="text-2xl sm:text-3xl font-semibold mb-2" style={{ color: 'var(--cloud-text)' }}>
               {question.question}
             </h2>
             {question.subtext && (
-              <p className="text-slate-400 mb-2">{question.subtext}</p>
+              <p className="mb-2" style={{ color: 'var(--cloud-muted)' }}>{question.subtext}</p>
             )}
             {question.maxSelections && (
-              <p className="text-blue-400 text-sm font-medium mb-6">
+              <p className="text-sm font-medium mb-6" style={{ color: 'var(--cloud-accent)' }}>
                 Select up to {question.maxSelections}
               </p>
             )}
@@ -163,24 +164,26 @@ export function Quiz({ onComplete }: QuizProps) {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleSingleSelect(opt.value)}
-                      className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all duration-150 cursor-pointer ${
-                        selected
-                          ? 'border-blue-500 bg-blue-500/20 text-white'
-                          : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/30 hover:bg-white/10'
-                      }`}
+                      className="flex items-center gap-3 p-4 rounded-2xl text-left transition-all duration-150 cursor-pointer"
+                      style={{
+                        backgroundColor: selected ? 'rgba(106, 92, 255, 0.06)' : 'var(--cloud-card)',
+                        border: selected ? '2px solid var(--cloud-accent)' : '1px solid var(--cloud-border)',
+                        color: 'var(--cloud-text)',
+                      }}
                     >
                       <span className="text-2xl">{opt.emoji}</span>
                       <div className="flex-1 min-w-0">
                         <span className="font-medium block">{opt.label}</span>
                         {opt.desc && (
-                          <span className="text-sm text-slate-400 block">{opt.desc}</span>
+                          <span className="text-sm block" style={{ color: 'var(--cloud-muted)' }}>{opt.desc}</span>
                         )}
                       </div>
                       {selected && (
                         <motion.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center shrink-0"
+                          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: 'var(--cloud-accent)' }}
                         >
                           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                             <path d="M2.5 6l2.5 2.5L9.5 4" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
@@ -204,11 +207,12 @@ export function Quiz({ onComplete }: QuizProps) {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleMultiToggle(opt.value)}
-                      className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all duration-150 cursor-pointer ${
-                        selected
-                          ? 'border-violet-500 bg-violet-500/20 text-white'
-                          : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/30 hover:bg-white/10'
-                      }`}
+                      className="flex items-center gap-3 p-4 rounded-2xl text-left transition-all duration-150 cursor-pointer"
+                      style={{
+                        backgroundColor: selected ? 'rgba(106, 92, 255, 0.06)' : 'var(--cloud-card)',
+                        border: selected ? '2px solid var(--cloud-accent)' : '1px solid var(--cloud-border)',
+                        color: 'var(--cloud-text)',
+                      }}
                     >
                       <span className="text-2xl">{opt.emoji}</span>
                       <span className="font-medium flex-1">{opt.label}</span>
@@ -216,7 +220,8 @@ export function Quiz({ onComplete }: QuizProps) {
                         <motion.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          className="w-6 h-6 rounded-full bg-violet-500 flex items-center justify-center shrink-0"
+                          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: 'var(--cloud-accent)' }}
                         >
                           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                             <path d="M2.5 6l2.5 2.5L9.5 4" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
@@ -236,7 +241,12 @@ export function Quiz({ onComplete }: QuizProps) {
                 onChange={(e) => handleTextChange(e.target.value)}
                 placeholder={question.placeholder}
                 rows={4}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder-slate-500 resize-none focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full rounded-2xl p-4 resize-none focus:outline-none transition-colors"
+                style={{
+                  backgroundColor: 'var(--cloud-card)',
+                  border: '1px solid var(--cloud-border)',
+                  color: 'var(--cloud-text)',
+                }}
               />
             )}
 
@@ -247,18 +257,22 @@ export function Quiz({ onComplete }: QuizProps) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="mt-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex gap-3"
+                  className="mt-6 p-4 rounded-2xl flex gap-3"
+                  style={{
+                    backgroundColor: 'rgba(106, 92, 255, 0.04)',
+                    border: '1px solid rgba(106, 92, 255, 0.12)',
+                  }}
                 >
-                  <span className="text-amber-400 shrink-0 mt-0.5">&#10024;</span>
+                  <span className="shrink-0 mt-0.5" style={{ color: 'var(--cloud-accent)' }}>&#10024;</span>
                   <div>
-                    <p className="text-amber-300 text-sm font-medium">AI Insight</p>
-                    <p className="text-amber-200/80 text-sm">{smartTip}</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--cloud-accent)' }}>AI Insight</p>
+                    <p className="text-sm" style={{ color: 'var(--cloud-muted)' }}>{smartTip}</p>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Next button (shown for multi-select and text, hidden for single since auto-advance) */}
+            {/* Next button */}
             {(question.type === 'multi' || question.type === 'text' || (question.type === 'single' && isLast)) && (
               <motion.button
                 initial={{ opacity: 0, y: 10 }}
@@ -266,11 +280,20 @@ export function Quiz({ onComplete }: QuizProps) {
                 transition={{ delay: 0.1 }}
                 onClick={goNext}
                 disabled={!canProceed && question.type !== 'text'}
-                className={`mt-8 w-full py-4 rounded-2xl font-semibold text-lg transition-all duration-200 cursor-pointer inline-flex items-center justify-center gap-2 ${
+                className="mt-8 w-full py-4 rounded-2xl font-medium text-lg transition-all duration-200 cursor-pointer inline-flex items-center justify-center gap-2"
+                style={
                   canProceed || question.type === 'text'
-                    ? 'bg-blue-500 hover:bg-blue-400 text-white shadow-lg shadow-blue-500/20'
-                    : 'bg-white/10 text-slate-500 cursor-not-allowed'
-                }`}
+                    ? {
+                        backgroundColor: 'var(--cloud-accent)',
+                        color: '#ffffff',
+                        boxShadow: '0 4px 16px rgba(106, 92, 255, 0.2)',
+                      }
+                    : {
+                        backgroundColor: 'var(--cloud-border)',
+                        color: 'var(--cloud-muted)',
+                        cursor: 'not-allowed',
+                      }
+                }
               >
                 {isLast ? 'Get my results' : 'Continue'}
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
