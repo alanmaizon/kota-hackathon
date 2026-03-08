@@ -184,7 +184,7 @@ export function ResultsView({ scoredPlans, explanation, onRestart }: ResultsView
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15 }}
-          className="flex flex-wrap gap-3 mb-8"
+          className="flex flex-wrap justify-center sm:justify-start gap-3 mb-8"
         >
           {[
             { label: 'Compare all plans', onClick: () => setView('compare'), icon: null },
