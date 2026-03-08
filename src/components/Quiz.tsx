@@ -110,7 +110,7 @@ export function Quiz({ onComplete }: QuizProps) {
         <button
           onClick={goBack}
           disabled={currentIndex === 0}
-          className="transition-colors disabled:opacity-0 cursor-pointer flex items-center gap-1 hover:opacity-70"
+          className="w-16 transition-colors disabled:opacity-0 cursor-pointer flex items-center gap-1 hover:opacity-70"
           style={{ color: 'var(--cloud-muted)' }}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
