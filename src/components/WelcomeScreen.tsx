@@ -4,13 +4,6 @@ interface WelcomeScreenProps {
   onStart: () => void;
 }
 
-const BENEFIT_CARDS = [
-  { emoji: '🤖', title: 'AI-powered matching', desc: "Smart recommendations based on your team's needs" },
-  { emoji: '⚡', title: '60 seconds', desc: 'Answer a few quick questions and get instant results' },
-  { emoji: '💡', title: 'Personalised insights', desc: 'Clear reasoning for every plan recommendation' },
-  { emoji: '👥', title: 'Built for teams', desc: 'Plans designed for startups and growing companies' },
-];
-
 export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--cloud-bg)' }}>
@@ -115,56 +108,6 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
             </motion.p>
           </motion.div>
         </div>
-      </section>
-
-      {/* ─── Benefit Cards ─────────────────────────────────────────────── */}
-      <section className="max-w-3xl mx-auto px-6 pb-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55, duration: 0.5 }}
-          className="grid grid-cols-2 gap-4"
-        >
-          {BENEFIT_CARDS.map((card, i) => (
-            <motion.div
-              key={card.title}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 + i * 0.08, duration: 0.4 }}
-              className="rounded-2xl p-4 text-left"
-              style={{
-                backgroundColor: 'var(--cloud-card)',
-                border: '1px solid var(--cloud-border)',
-              }}
-            >
-              <span className="text-2xl mb-2 block">{card.emoji}</span>
-              <p className="text-sm font-semibold mb-1" style={{ color: 'var(--cloud-text)' }}>{card.title}</p>
-              <p className="text-xs leading-relaxed" style={{ color: 'var(--cloud-muted)' }}>{card.desc}</p>
-            </motion.div>
-          ))}
-        </motion.div>
-      </section>
-
-      {/* ─── Trust Indicators ──────────────────────────────────────────── */}
-      <section className="max-w-3xl mx-auto px-6 pb-10 text-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9, duration: 0.4 }}
-        >
-          <p className="text-sm mb-3" style={{ color: 'var(--cloud-muted)' }}>Trusted by teams at</p>
-          <div className="flex items-center justify-center gap-6 flex-wrap">
-            {['early-stage startups', 'scale-ups', 'remote teams', 'SMEs'].map((desc) => (
-              <span
-                key={desc}
-                className="text-sm font-semibold"
-                style={{ color: 'var(--cloud-muted)', opacity: 0.5 }}
-              >
-                {desc}
-              </span>
-            ))}
-          </div>
-        </motion.div>
       </section>
 
       {/* ─── Footer watermark ──────────────────────────────────────────── */}
